@@ -9,6 +9,9 @@ import CrewList from '@/components/crew/CrewList'
 import Crew from '@/components/crew/Crew'
 import Promoters from '@/components/promoter/Promoters'
 import Promoter from '@/components/promoter/Promoter'
+import Profile from '@/components/user/profile/Profile'
+import MyEvents from '@/components/user/profile/myevent/MyEvents'
+import PromotersFromEvent from '@/components/user/profile/myevent/promoter/PromotersFromEvent'
 import AuthGuard from './auth-guard'
 
 Vue.use(Router)
@@ -68,6 +71,25 @@ export default new Router({
       name: 'Promoter',
       props: true,
       component: Promoter
+    },
+    {
+      path: '/profile',
+      name: 'Profile',
+      component: Profile,
+      beforeEnter: AuthGuard
+    },
+    {
+      path: '/myevents',
+      name: 'MyEvents',
+      component: MyEvents,
+      beforeEnter: AuthGuard
+    },
+    {
+      path: '/myevents/:event/promoters',
+      name: 'PromotersFromEvent',
+      props: true,
+      component: PromotersFromEvent,
+      beforeEnter: AuthGuard
     }
   ]
 })

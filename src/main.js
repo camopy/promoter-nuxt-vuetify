@@ -9,8 +9,12 @@ import 'vuetify/dist/vuetify.min.css'
 import { store } from './store'
 import AlertCmp from './components/Shared/Alert'
 import ApplyDialog from './components/event/apply/ApplyDialog'
+import moment from 'moment'
 
 Vue.use(Vuetify)
+
+moment.locale('pt-br')
+Vue.prototype.$moment = moment
 
 Vue.config.productionTip = false
 
@@ -36,6 +40,7 @@ new Vue({
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         this.$store.dispatch('autoSignIn', user)
+        this.$store.dispatch('loadEventsFromUser', user)
         this.$store.dispatch('fetchUserData')
         this.$store.dispatch('loadPromoters')
       }

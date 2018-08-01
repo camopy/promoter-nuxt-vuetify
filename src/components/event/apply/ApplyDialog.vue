@@ -58,7 +58,7 @@ export default {
       }) >= 0
     },
     userIsApplied () {
-      return this.$store.getters.user.eventsApplied.findIndex(eventId => {
+      return this.$store.getters.user.eventsApplying.findIndex(eventId => {
         return eventId === this.eventId
       }) >= 0
     }

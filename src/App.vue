@@ -154,7 +154,7 @@
           { icon: 'group', text: 'Organizações', to: '/crew' },
           { icon: 'directions_walk', text: 'Entrar', to: '/signin' }
         ]
-        if (this.userIsAuthenticated) {
+        if (this.userIsAuthenticated && this.isCrew) {
           items = [
             { icon: 'assignment', text: 'Missões', to: '/tasks' },
             { icon: 'event_available', text: 'Eventos', to: '/events' },
@@ -166,8 +166,24 @@
               text: 'Meu Painel',
               model: true,
               children: [
-                { icon: 'portrait', text: 'Perfil' },
-                { icon: 'event_notes', text: 'Meus Eventos' }
+                { icon: 'portrait', text: 'Perfil', to: '/profile' },
+                { icon: 'event_notes', text: 'Meus Eventos', to: '/myevents' }
+              ]
+            }
+          ]
+        } else if (this.userIsAuthenticated) {
+          items = [
+            { icon: 'assignment', text: 'Missões', to: '/tasks' },
+            { icon: 'event_available', text: 'Eventos', to: '/events' },
+            { icon: 'group', text: 'Organizações', to: '/crew' },
+            { icon: 'person', text: 'Divulgadores', to: '/promoters' },
+            {
+              icon: 'keyboard_arrow_up',
+              'icon-alt': 'keyboard_arrow_down',
+              text: 'Meu Painel',
+              model: true,
+              children: [
+                { icon: 'portrait', text: 'Perfil', to: '/profile' }
               ]
             }
           ]

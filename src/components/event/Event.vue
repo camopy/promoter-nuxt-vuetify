@@ -17,12 +17,15 @@
                 <h1>{{ event.name }}</h1>
               </div>
             </v-card-title>
+            <v-card-text>
+              <div>{{formatDate(event.date)}} - {{event.city}}, {{event.state}}</div>
+            </v-card-text>
             <v-card-media
               :src="event.imageUrl"
               height="400px"
             ></v-card-media>
             <v-card-text>
-              <div>{{event.date}}</div>
+              <div>{{event.description}}</div>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -50,6 +53,11 @@ export default {
     },
     isCrew () {
       return this.$store.getters.user.accountType === 'crew'
+    }
+  },
+  methods: {
+    formatDate (date) {
+      return this.$moment(date).format('L')
     }
   }
 }

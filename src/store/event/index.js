@@ -1,21 +1,22 @@
 import * as firebase from 'firebase'
 import { db } from '../../main'
+import * as moment from 'moment'
 
 export default {
   state: {
     loadedEvents: [],
-    loadedCrewList: [],
-    loadedPromoters: []
+    loadedEventsFromUser: [],
+    loadedCrewList: []
   },
   mutations: {
     setLoadedEvents (state, payload) {
       state.loadedEvents = payload
     },
+    setLoadedEventsFromUser (state, payload) {
+      state.loadedEventsFromUser = payload
+    },
     setLoadedCrewList (state, payload) {
       state.loadedCrewList = payload
-    },
-    setLoadedPromoters (state, payload) {
-      state.loadedPromoters = payload
     },
     createEvent (state, payload) {
       state.loadedEvents.push(payload)
@@ -37,7 +38,8 @@ export default {
               description: doc.data().description,
               gift: doc.data().gift,
               imageUrl: doc.data().imageUrl,
-              creatorId: doc.data().creatorId
+              creatorId: doc.data().creatorId,
+              dateCreated: doc.data().dateCreated
             })
           })
           commit('setLoadedEvents', events)
@@ -45,6 +47,33 @@ export default {
         })
       .catch(function (error) {
         console.error('Error fetching events: ', error)
+        commit('setLoading', false)
+      })
+    },
+    loadEventsFromUser ({commit}, payload) {
+      commit('setLoading', true)
+      db.collection('events').where('creatorId', '==', payload.uid).get()
+        .then((querySnapshot) => {
+          const events = []
+          querySnapshot.forEach((doc) => {
+            events.push({
+              id: doc.id,
+              name: doc.data().name,
+              state: doc.data().state,
+              city: doc.data().city,
+              date: doc.data().date,
+              description: doc.data().description,
+              gift: doc.data().gift,
+              imageUrl: doc.data().imageUrl,
+              creatorId: doc.data().creatorId,
+              dateCreated: doc.data().dateCreated
+            })
+          })
+          commit('setLoadedEventsFromUser', events)
+          commit('setLoading', false)
+        })
+      .catch(function (error) {
+        console.error('Error fetching events from user: ', error)
         commit('setLoading', false)
       })
     },
@@ -57,30 +86,11 @@ export default {
             crew.push({
               id: doc.id,
               name: doc.data().name,
-              email: doc.data().email
+              email: doc.data().email,
+              dateCreated: doc.data().dateCreated
             })
           })
           commit('setLoadedCrewList', crew)
-          commit('setLoading', false)
-        })
-      .catch(function (error) {
-        console.error('Error fetching users by accountType: ', error)
-        commit('setLoading', false)
-      })
-    },
-    loadPromoters ({commit}, payload) {
-      commit('setLoading', true)
-      db.collection('users').where('accountType', '==', 'promoter').get()
-        .then((querySnapshot) => {
-          const promoters = []
-          querySnapshot.forEach((doc) => {
-            promoters.push({
-              id: doc.id,
-              name: doc.data().name,
-              email: doc.data().email
-            })
-          })
-          commit('setLoadedPromoters', promoters)
           commit('setLoading', false)
         })
       .catch(function (error) {
@@ -96,7 +106,8 @@ export default {
         date: payload.date,
         description: payload.description,
         gift: payload.gift,
-        creatorId: getters.user.id
+        creatorId: getters.user.id,
+        dateCreated: moment().toISOString()
       }
       let key
       db.collection('events').add(event)
@@ -140,6 +151,9 @@ export default {
     loadedEvents (state) {
       return state.loadedEvents
     },
+    loadedEventsFromUser (state) {
+      return state.loadedEventsFromUser
+    },
     loadedEvent (state) {
       return (eventId) => {
         return state.loadedEvents.find((event) => {
@@ -154,16 +168,6 @@ export default {
       return (crewId) => {
         return state.loadedCrewList.find((crew) => {
           return crew.id === crewId
-        })
-      }
-    },
-    loadedPromoters (state) {
-      return state.loadedPromoters
-    },
-    loadedPromoter (state) {
-      return (promoterId) => {
-        return state.loadedPromoters.find((promoter) => {
-          return promoter.id === promoterId
         })
       }
     }

@@ -1,5 +1,6 @@
 import * as firebase from 'firebase'
 import { db } from '../../main'
+import * as moment from 'moment'
 
 export default {
   state: {
@@ -7,14 +8,14 @@ export default {
   },
   mutations: {
     applyUserForEvent (state, payload) {
-      if (state.user.eventsApplied.findIndex(event => event.id === payload) >= 0) {
+      if (state.user.eventsApplying.findIndex(event => event.id === payload) >= 0) {
         return
       }
-      state.user.eventsApplied.push(payload)
+      state.user.eventsApplying.push(payload)
     },
     unapplyUserFromEvent (state, payload) {
-      const eventsApplied = state.user.eventsApplied
-      eventsApplied.splice(eventsApplied.findIndex(event => event.id === payload), 1)
+      const eventsApplying = state.user.eventsApplying
+      eventsApplying.splice(eventsApplying.findIndex(event => event.id === payload), 1)
     },
     setUser (state, payload) {
       state.user = payload
@@ -25,12 +26,13 @@ export default {
       commit('setLoading', true)
       const user = getters.user
 
-      let eventDoc = db.collection('users/' + user.id + '/eventsApplied').doc(payload)
-      let userDoc = db.collection('events/' + payload + '/appliedUsers').doc(user.id)
+      let eventDoc = db.collection('users/' + user.id + '/eventsApplying').doc(payload)
+      let userDoc = db.collection('events/' + payload + '/usersApplying').doc(user.id)
 
       var batch = db.batch()
-      batch.set(eventDoc, {status: 'pending'})
-      batch.set(userDoc, {status: 'pending'})
+      let applyDate = moment().toISOString()
+      batch.set(eventDoc, {status: 'pending', applyDate: applyDate})
+      batch.set(userDoc, {status: 'pending', applyDate: applyDate})
       batch.commit()
         .then(() => {
           commit('setLoading', false)
@@ -45,11 +47,11 @@ export default {
     unapplyUserFromEvent ({commit, getters}, payload) {
       commit('setLoading', true)
       const user = getters.user
-      if (!user.eventsApplied) {
+      if (!user.eventsApplying) {
         return false
       } else {
-        let eventDoc = db.collection('users/' + user.id + '/eventsApplied').doc(payload)
-        let userDoc = db.collection('events/' + payload + '/appliedUsers').doc(user.id)
+        let eventDoc = db.collection('users/' + user.id + '/eventsApplying').doc(payload)
+        let userDoc = db.collection('events/' + payload + '/usersApplying').doc(user.id)
 
         var batch = db.batch()
         batch.delete(userDoc)
@@ -75,8 +77,9 @@ export default {
             const newUser = {
               id: auth.user.uid,
               promotingEvents: [],
-              eventsApplied: [],
-              accountType: payload.accountType
+              eventsApplying: [],
+              accountType: payload.accountType,
+              dateCreated: moment().toISOString()
             }
             commit('setUser', newUser)
 
@@ -109,24 +112,8 @@ export default {
       commit('clearError')
       firebase.auth().signInWithEmailAndPassword(payload.email, payload.password)
         .then(
-          auth => {
-            db.collection('users').doc(auth.user.uid).get().then(function (doc) {
-              commit('setLoading', false)
-              if (doc.exists) {
-                console.log('Document data:', doc.data())
-                const newUser = {
-                  id: auth.user.uid,
-                  promotingEvents: [],
-                  eventsApplied: [],
-                  accountType: doc.data().accountType
-                }
-                commit('setUser', newUser)
-              } else {
-                console.log('User not found!')
-              }
-            }).catch(function (error) {
-              console.log('Error getting user:', error)
-            })
+          () => {
+            commit('setLoading', false)
           }
         )
         .catch(
@@ -141,7 +128,7 @@ export default {
       commit('setUser', {
         id: payload.uid,
         promotingEvents: [],
-        eventsApplied: []
+        eventsApplying: []
       })
     },
     fetchUserData ({commit, getters}) {
@@ -151,8 +138,11 @@ export default {
           if (doc.exists) {
             const updatedUser = {
               id: getters.user.id,
+              name: doc.data().name,
+              email: doc.data().email,
               accountType: doc.data().accountType,
-              eventsApplied: [],
+              dateCreated: doc.data().dateCreated,
+              eventsApplying: [],
               promotingEvents: []
             }
             return updatedUser
@@ -162,19 +152,22 @@ export default {
         })
         .then(updatedUser => {
           if (updatedUser.accountType === 'promoter') {
-            db.collection('users/' + updatedUser.id + '/eventsApplied').get()
+            db.collection('users/' + updatedUser.id + '/eventsApplying').get()
               .then((querySnapshot) => {
-                let eventsApplied = []
+                let eventsApplying = []
                 querySnapshot.forEach((doc) => {
-                  eventsApplied.push(doc.id)
+                  eventsApplying.push(doc.id)
                 })
-                updatedUser.eventsApplied = eventsApplied
+                updatedUser.eventsApplying = eventsApplying
                 commit('setUser', updatedUser)
                 commit('setLoading', false)
               })
             .catch(function (error) {
-              console.log('Error getting eventsApplied:', error)
+              console.log('Error getting eventsApplying:', error)
             })
+          } else {
+            commit('setUser', updatedUser)
+            commit('setLoading', false)
           }
         })
       .catch(function (error) {
