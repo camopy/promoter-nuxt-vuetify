@@ -1,14 +1,14 @@
 <template>
   <v-dialog persistent v-model="applyDialog">
     <v-btn accent slot="activator">
-      {{ userIsPromoting ? 'Sair' : (userIsApplied ? 'Cancelar' : 'Aplicar')}}
+      {{ userIsPromoting ? 'Sair' : (userIsApplying ? 'Cancelar' : 'Aplicar')}}
     </v-btn>
     <v-card>
       <v-container fluid>
         <v-layout row wrap>
           <v-flex xs12>
             <v-card-title v-if="userIsPromoting">Sair da divulgação?</v-card-title>
-            <v-card-title v-else-if="userIsApplied">Cancelar aplicação?</v-card-title>
+            <v-card-title v-else-if="userIsApplying">Cancelar aplicação?</v-card-title>
             <v-card-title v-else>Aplicar para divulgar?</v-card-title>
           </v-flex>
         </v-layout>
@@ -53,20 +53,22 @@ export default {
   },
   computed: {
     userIsPromoting () {
-      return this.$store.getters.user.promotingEvents.findIndex(eventId => {
-        return eventId === this.eventId
+      return this.$store.getters.user.events.findIndex(event => {
+        return event.id === this.eventId && event.status === 'promoting'
       }) >= 0
     },
-    userIsApplied () {
-      return this.$store.getters.user.eventsApplying.findIndex(eventId => {
-        return eventId === this.eventId
+    userIsApplying () {
+      return this.$store.getters.user.events.findIndex(event => {
+        return event.id === this.eventId && event.status === 'applying'
       }) >= 0
     }
   },
   methods: {
     onAgree () {
-      if (this.userIsApplied) {
+      if (this.userIsApplying) {
         this.$store.dispatch('unapplyUserFromEvent', this.eventId)
+      } else if (this.userIsPromoting) {
+        this.$store.dispatch('updateUserStatusFromEvent', {id: this.eventId, status: 'left'})
       } else {
         this.$store.dispatch('applyUserForEvent', this.eventId)
       }

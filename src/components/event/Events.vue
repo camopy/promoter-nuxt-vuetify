@@ -32,6 +32,14 @@
                     <v-btn flat :to="'/events/' + event.id">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Ver Evento
+                    </v-btn>
+                    <v-btn flat :to="'/events/' + event.id" v-if="userIsCreator(event)">
+                      <!-- <v-icon left light>arrow_forward</v-icon> -->
+                      Missões
+                    </v-btn>
+                    <v-btn flat :to="'/events/' + event.id + '/promoters'" @click="onViewPromoters(event)" v-if="userIsCreator(event)">
+                      <!-- <v-icon left light>arrow_forward</v-icon> -->
+                      Divulgadores
                     </v-btn>                    
                   </v-card-actions>
                 </v-flex>
@@ -52,6 +60,20 @@ export default {
     },
     loading () {
       return this.$store.getters.loading
+    },
+    userIsAuthenticated () {
+      return this.$store.getters.user !== null && this.$store.getters.user !== undefined
+    }
+  },
+  methods: {
+    onViewPromoters (event) {
+      this.$store.dispatch('loadPromotersFromEvent', event)
+    },
+    userIsCreator (event) {
+      if (!this.userIsAuthenticated) {
+        return false
+      }
+      return this.$store.getters.user.id === event.creatorId
     }
   }
 }

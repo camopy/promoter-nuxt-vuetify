@@ -1,4 +1,5 @@
 import { db } from '../../main'
+import * as moment from 'moment'
 
 export default {
   state: {
@@ -11,6 +12,15 @@ export default {
     },
     setLoadedPromotersFromEvent (state, payload) {
       state.loadedPromotersFromEvent = payload
+    },
+    setPromoterStatusFromEvent (state, payload) {
+      const loadedPromotersFromEvent = state.loadedPromotersFromEvent
+      loadedPromotersFromEvent.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedPromotersFromEvent[index].status = payload.status
+        }
+      })
+      state.loadedPromotersFromEvent = loadedPromotersFromEvent
     }
   },
   actions: {
@@ -37,7 +47,7 @@ export default {
     },
     loadPromotersFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('events').doc(payload.id).collection('usersApplying').get()
+      db.collection('events').doc(payload.id).collection('promoters').get()
         .then((querySnapshot) => {
           const promoters = []
           querySnapshot.forEach((doc) => {
@@ -54,6 +64,26 @@ export default {
       .catch(function (error) {
         console.error('Error fetching events from user: ', error)
         commit('setLoading', false)
+      })
+    },
+    updatePromoterStatusFromEvent ({commit}, payload) {
+      commit('setLoading', true)
+      let eventDoc = db.collection('users/' + payload.promoterId + '/events').doc(payload.eventId)
+      let userDoc = db.collection('events/' + payload.eventId + '/promoters').doc(payload.promoterId)
+
+      var batch = db.batch()
+      const updateDate = moment().toISOString()
+      batch.update(eventDoc, {status: payload.status, updateDate: updateDate})
+      batch.update(userDoc, {status: payload.status, updateDate: updateDate})
+      batch.commit()
+        .then(() => {
+          commit('setLoading', false)
+          commit('setPromoterStatusFromEvent', {id: payload.promoterId, status: payload.status})
+          console.log('User accepted to event.')
+        })
+      .catch(error => {
+        commit('setLoading', false)
+        console.error('Error accepting user to event: ', error)
       })
     }
   },

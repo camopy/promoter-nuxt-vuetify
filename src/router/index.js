@@ -85,7 +85,7 @@ export default new Router({
       beforeEnter: AuthGuard
     },
     {
-      path: '/myevents/:event/promoters',
+      path: '/events/:eventId/promoters',
       name: 'PromotersFromEvent',
       props: true,
       component: PromotersFromEvent,

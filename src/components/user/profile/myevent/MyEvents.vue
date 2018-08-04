@@ -33,14 +33,14 @@
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Ver Evento
                     </v-btn>
-                    <v-btn flat :to="'/myevents/' + event.id">
+                    <v-btn flat :to="'/events/' + event.id">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Missões
                     </v-btn>
-                    <v-btn flat :to="'/myevents/' + event.id + '/promoters'" @click="onViewPromoters(event)">
+                    <v-btn flat :to="'/events/' + event.id + '/promoters'" @click="onViewPromoters(event)">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Divulgadores
-                    </v-btn>
+                    </v-btn>                    
                   </v-card-actions>
                 </v-flex>
               </v-layout>

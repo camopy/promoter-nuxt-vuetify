@@ -128,7 +128,7 @@
       dark
       fixed
       @click.stop="dialog = !dialog"
-      v-if="userIsAuthenticated && isCrew"
+      v-if="userIsAuthenticated && userIsCrew"
     >
       <v-icon>add</v-icon>
     </v-btn>
@@ -154,7 +154,7 @@
           { icon: 'group', text: 'Organizações', to: '/crew' },
           { icon: 'directions_walk', text: 'Entrar', to: '/signin' }
         ]
-        if (this.userIsAuthenticated && this.isCrew) {
+        if (this.userIsAuthenticated && this.userIsCrew) {
           items = [
             { icon: 'assignment', text: 'Missões', to: '/tasks' },
             { icon: 'event_available', text: 'Eventos', to: '/events' },
@@ -193,7 +193,7 @@
       userIsAuthenticated () {
         return this.$store.getters.user !== null && this.$store.getters.user !== undefined
       },
-      isCrew () {
+      userIsCrew () {
         return this.$store.getters.user.accountType === 'crew'
       }
     },

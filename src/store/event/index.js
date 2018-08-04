@@ -20,6 +20,25 @@ export default {
     },
     createEvent (state, payload) {
       state.loadedEvents.push(payload)
+    },
+    toogleRecruitingFromEvent (state, payload) {
+      const recruiting = !payload.recruiting
+
+      const loadedEventsFromUser = state.loadedEventsFromUser
+      loadedEventsFromUser.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEventsFromUser[index].recruiting = recruiting
+        }
+      })
+      state.loadedEventsFromUser = loadedEventsFromUser
+
+      const loadedEvents = state.loadedEvents
+      loadedEvents.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEvents[index].recruiting = recruiting
+        }
+      })
+      state.loadedEvents = loadedEvents
     }
   },
   actions: {
@@ -39,7 +58,8 @@ export default {
               gift: doc.data().gift,
               imageUrl: doc.data().imageUrl,
               creatorId: doc.data().creatorId,
-              dateCreated: doc.data().dateCreated
+              dateCreated: doc.data().dateCreated,
+              recruiting: doc.data().recruiting
             })
           })
           commit('setLoadedEvents', events)
@@ -66,7 +86,8 @@ export default {
               gift: doc.data().gift,
               imageUrl: doc.data().imageUrl,
               creatorId: doc.data().creatorId,
-              dateCreated: doc.data().dateCreated
+              dateCreated: doc.data().dateCreated,
+              recruiting: doc.data().recruiting
             })
           })
           commit('setLoadedEventsFromUser', events)
@@ -107,7 +128,8 @@ export default {
         description: payload.description,
         gift: payload.gift,
         creatorId: getters.user.id,
-        dateCreated: moment().toISOString()
+        dateCreated: moment().toISOString(),
+        recruiting: false
       }
       let key
       db.collection('events').add(event)
@@ -145,6 +167,18 @@ export default {
         .catch(function (error) {
           console.error('Error adding event: ', error)
         })
+    },
+    toogleRecruitingFromEvent ({commit}, payload) {
+      commit('setLoading', true)
+      db.collection('events').doc(payload.id).update({recruiting: !payload.recruiting})
+        .then(() => {
+          commit('toogleRecruitingFromEvent', payload)
+          commit('setLoading', false)
+        })
+      .catch(function (error) {
+        console.error('Error updating recruiting status from event : ', error)
+        commit('setLoading', false)
+      })
     }
   },
   getters: {
@@ -157,6 +191,13 @@ export default {
     loadedEvent (state) {
       return (eventId) => {
         return state.loadedEvents.find((event) => {
+          return event.id === eventId
+        })
+      }
+    },
+    loadedEventFromUser (state) {
+      return (eventId) => {
+        return state.loadedEventsFromUser.find((event) => {
           return event.id === eventId
         })
       }

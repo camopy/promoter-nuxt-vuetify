@@ -29,7 +29,7 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <app-event-apply-dialog :eventId="id" v-if="userIsAuthenticated && !isCrew"></app-event-apply-dialog>
+              <app-event-apply-dialog :eventId="id" v-if="userIsAuthenticated && !userIsCrew && !userWasDeclined && (eventIsRecruiting || userIsApplying || userIsPromoting)"></app-event-apply-dialog>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -51,8 +51,26 @@ export default {
     userIsAuthenticated () {
       return this.$store.getters.user !== null && this.$store.getters.user !== undefined
     },
-    isCrew () {
+    userIsCrew () {
       return this.$store.getters.user.accountType === 'crew'
+    },
+    eventIsRecruiting () {
+      return this.event.recruiting
+    },
+    userIsApplying () {
+      return this.$store.getters.user.events.findIndex(event => {
+        return event.id === this.id && event.status === 'applying'
+      }) >= 0
+    },
+    userIsPromoting () {
+      return this.$store.getters.user.events.findIndex(event => {
+        return event.id === this.id && event.status === 'promoting'
+      }) >= 0
+    },
+    userWasDeclined () {
+      return this.$store.getters.user.events.findIndex(event => {
+        return event.id === this.id && event.status === 'declined'
+      }) >= 0
     }
   },
   methods: {

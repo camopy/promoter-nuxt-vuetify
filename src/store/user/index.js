@@ -8,14 +8,25 @@ export default {
   },
   mutations: {
     applyUserForEvent (state, payload) {
-      if (state.user.eventsApplying.findIndex(event => event.id === payload) >= 0) {
+      const index = state.user.events.findIndex(event => event.id === payload.id)
+      if (index >= 0) {
+        state.user.events[index].status = 'applying'
         return
       }
-      state.user.eventsApplying.push(payload)
+      state.user.events.push(payload)
     },
     unapplyUserFromEvent (state, payload) {
-      const eventsApplying = state.user.eventsApplying
-      eventsApplying.splice(eventsApplying.findIndex(event => event.id === payload), 1)
+      const events = state.user.events
+      events.splice(events.findIndex(event => event.id === payload), 1)
+    },
+    updateUserStatusFromEvent (state, payload) {
+      const events = state.user.events
+      events.forEach((element, index) => {
+        if (element.id === payload.id) {
+          events[index].status = payload.status
+        }
+      })
+      state.user.events = events
     },
     setUser (state, payload) {
       state.user = payload
@@ -26,17 +37,17 @@ export default {
       commit('setLoading', true)
       const user = getters.user
 
-      let eventDoc = db.collection('users/' + user.id + '/eventsApplying').doc(payload)
-      let userDoc = db.collection('events/' + payload + '/usersApplying').doc(user.id)
+      let eventDoc = db.collection('users/' + user.id + '/events').doc(payload)
+      let userDoc = db.collection('events/' + payload + '/promoters').doc(user.id)
 
       var batch = db.batch()
-      let applyDate = moment().toISOString()
-      batch.set(eventDoc, {status: 'pending', applyDate: applyDate})
-      batch.set(userDoc, {status: 'pending', applyDate: applyDate})
+      const applyDate = moment().toISOString()
+      batch.set(eventDoc, {status: 'applying', applyDate: applyDate, name: user.name})
+      batch.set(userDoc, {status: 'applying', applyDate: applyDate, name: user.name})
       batch.commit()
         .then(() => {
           commit('setLoading', false)
-          commit('applyUserForEvent', payload)
+          commit('applyUserForEvent', {id: payload, status: 'applying'})
           console.log('User applied to event.')
         })
       .catch(error => {
@@ -47,11 +58,11 @@ export default {
     unapplyUserFromEvent ({commit, getters}, payload) {
       commit('setLoading', true)
       const user = getters.user
-      if (!user.eventsApplying) {
+      if (!user.events) {
         return false
       } else {
-        let eventDoc = db.collection('users/' + user.id + '/eventsApplying').doc(payload)
-        let userDoc = db.collection('events/' + payload + '/usersApplying').doc(user.id)
+        let eventDoc = db.collection('users/' + user.id + '/events').doc(payload)
+        let userDoc = db.collection('events/' + payload + '/promoters').doc(user.id)
 
         var batch = db.batch()
         batch.delete(userDoc)
@@ -68,6 +79,28 @@ export default {
         })
       }
     },
+    updateUserStatusFromEvent ({commit, getters}, payload) {
+      commit('setLoading', true)
+      const user = getters.user
+
+      let eventDoc = db.collection('users/' + user.id + '/events').doc(payload.id)
+      let userDoc = db.collection('events/' + payload.id + '/promoters').doc(user.id)
+
+      var batch = db.batch()
+      const updateDate = moment().toISOString()
+      batch.update(eventDoc, {status: payload.status, updateDate: updateDate})
+      batch.update(userDoc, {status: payload.status, updateDate: updateDate})
+      batch.commit()
+        .then(() => {
+          commit('setLoading', false)
+          commit('updateUserStatusFromEvent', {id: payload.id, status: payload.status})
+          console.log('User status updated.')
+        })
+      .catch(error => {
+        commit('setLoading', false)
+        console.error('Error updating user status: ', error)
+      })
+    },
     signUserUp ({commit}, payload) {
       commit('setLoading', true)
       commit('clearError')
@@ -76,8 +109,7 @@ export default {
           auth => {
             const newUser = {
               id: auth.user.uid,
-              promotingEvents: [],
-              eventsApplying: [],
+              events: [],
               accountType: payload.accountType,
               dateCreated: moment().toISOString()
             }
@@ -127,8 +159,7 @@ export default {
     autoSignIn ({commit}, payload) {
       commit('setUser', {
         id: payload.uid,
-        promotingEvents: [],
-        eventsApplying: []
+        events: []
       })
     },
     fetchUserData ({commit, getters}) {
@@ -142,8 +173,7 @@ export default {
               email: doc.data().email,
               accountType: doc.data().accountType,
               dateCreated: doc.data().dateCreated,
-              eventsApplying: [],
-              promotingEvents: []
+              events: []
             }
             return updatedUser
           } else {
@@ -152,18 +182,18 @@ export default {
         })
         .then(updatedUser => {
           if (updatedUser.accountType === 'promoter') {
-            db.collection('users/' + updatedUser.id + '/eventsApplying').get()
+            db.collection('users/' + updatedUser.id + '/events').get()
               .then((querySnapshot) => {
-                let eventsApplying = []
+                let events = []
                 querySnapshot.forEach((doc) => {
-                  eventsApplying.push(doc.id)
+                  events.push({id: doc.id, status: doc.data().status})
                 })
-                updatedUser.eventsApplying = eventsApplying
+                updatedUser.events = events
                 commit('setUser', updatedUser)
                 commit('setLoading', false)
               })
             .catch(function (error) {
-              console.log('Error getting eventsApplying:', error)
+              console.log('Error getting events:', error)
             })
           } else {
             commit('setUser', updatedUser)
