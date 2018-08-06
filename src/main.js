@@ -43,6 +43,7 @@ new Vue({
         this.$store.dispatch('loadEventsFromUser', user)
         this.$store.dispatch('fetchUserData')
         this.$store.dispatch('loadPromoters')
+        // this.$store.dispatch('loadTasks')
       }
     })
   }

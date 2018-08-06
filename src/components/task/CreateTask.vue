@@ -4,39 +4,33 @@
       <v-card-title
         class="grey py-4 title"
       >
-        Criar um novo evento
+        Criar uma nova missão
       </v-card-title>
       <v-container grid-list-sm class="pa-4">
         <v-form ref="form" v-model="valid" lazy-validation>
           <v-layout row wrap>
             <v-flex xs12 align-center justify-space-between>
               <v-text-field
-                prepend-icon="event"
+                prepend-icon="assignment"
                 label="Nome"
                 v-model="name"
                 :rules="nameRules"
                 required
               ></v-text-field>
             </v-flex>
-            <v-flex xs4>
-              <v-text-field
-                prepend-icon="domain"
-                label="Estado"
-                v-model="state"
-                :rules="stateRules"
-                required
-              ></v-text-field>
+            <v-flex xs12>
+              <v-overflow-btn
+                prepend-icon="event"
+                v-model="event"
+                :items="events"
+                label="Evento"
+                editable
+                item-text="name"
+                item-value="id"
+                return-object
+              ></v-overflow-btn>
             </v-flex>
-            <v-flex xs4>
-              <v-text-field
-                prepend-icon="location_city"
-                label="Cidade"
-                v-model="city"
-                :rules="cityRules"
-                required
-              ></v-text-field>
-            </v-flex>
-            <v-flex xs4>
+            <v-flex xs6>
                 <v-menu
                   :close-on-content-click="false"
                   v-model="dateMenu"
@@ -58,6 +52,30 @@
                     readonly
                   ></v-text-field>
                   <v-date-picker v-model="date" no-title @input="dateMenu = false"></v-date-picker>
+                </v-menu>
+            </v-flex>
+            <v-flex xs6>
+                <v-menu
+                  :close-on-content-click="false"
+                  v-model="finalDateMenu"
+                  :nudge-right="40"
+                  lazy
+                  transition="scale-transition"
+                  offset-y
+                  full-width
+                  max-width="290px"
+                  min-width="290px"
+                >
+                  <v-text-field
+                    slot="activator"
+                    :value="computedFinalDateFormatted"
+                    label="Data limite"
+                    prepend-icon="event"
+                    :rules="finalDateRules"
+                    required
+                    readonly
+                  ></v-text-field>
+                  <v-date-picker v-model="finalDate" no-title @input="finalDateMenu = false"></v-date-picker>
                 </v-menu>
             </v-flex>
             <v-flex xs12 sm8>
@@ -82,20 +100,13 @@
                 ></v-card-media>
               </v-card>
             </v-flex>
-            <v-flex xs12>
-              <v-text-field
-                prepend-icon="whatshot"
-                label="Prêmio"
-                v-model="gift"
-              ></v-text-field>
-            </v-flex>
           </v-layout>
         </v-form>
       </v-container>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn flat color="primary" @click="dialog = false">Cancelar</v-btn>
-        <v-btn flat :disabled="!valid" @click="onCreateEvent">Salvar</v-btn>
+        <v-btn flat :disabled="!valid" @click="onCreateTask">Salvar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -121,6 +132,12 @@ export default {
     },
     computedDateFormatted () {
       return this.formatDate(this.date)
+    },
+    computedFinalDateFormatted () {
+      return this.formatDate(this.finalDate)
+    },
+    events () {
+      return this.$store.getters.loadedEventsFromUser
     }
   },
 
@@ -137,39 +154,35 @@ export default {
       v => !!v || 'Nome é obrigatório'
       // v => (v && v.length <= 10) || 'Name must be less than 10 characters'
     ],
-    state: '',
-    stateRules: [
-      v => !!v || 'Estado é obrigatório'
-    ],
-    city: '',
-    cityRules: [
-      v => !!v || 'Cidade é obrigatório'
-    ],
     date: '',
     dateRules: [
       v => !!v || 'Data é obrigatório'
     ],
+    finalDate: '',
+    finalDateRules: [
+      v => !!v || 'Data limite é obrigatório'
+    ],
     // dateFormatted: null,
     dateMenu: false,
+    finalDateMenu: false,
     description: '',
-    gift: '',
     image: null,
-    imageUrl: ''
+    imageUrl: '',
+    event: ''
   }),
 
   methods: {
-    onCreateEvent () {
+    onCreateTask () {
       if (this.$refs.form.validate()) {
-        const eventData = {
+        const taskData = {
           name: this.name,
-          state: this.state,
-          city: this.city,
           date: this.date,
+          finalDate: this.finalDate,
           description: this.description,
           image: this.image,
-          gift: this.gift
+          eventId: this.event.id
         }
-        this.$store.dispatch('createEvent', eventData)
+        this.$store.dispatch('createTask', taskData)
         this.dialog = false
       }
     },

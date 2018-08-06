@@ -20,6 +20,7 @@ export default {
     },
     createEvent (state, payload) {
       state.loadedEvents.push(payload)
+      state.loadedEventsFromUser.push(payload)
     },
     toogleRecruitingFromEvent (state, payload) {
       const recruiting = !payload.recruiting
@@ -139,9 +140,16 @@ export default {
           return key
         })
         .then(key => {
+          if (!payload.image) {
+            commit('createEvent', {
+              ...event,
+              id: key
+            })
+            return Promise.reject(new Error('No image'))
+          }
           const filename = payload.image.name
           const ext = filename.slice(filename.lastIndexOf('.'))
-          return firebase.storage().ref('events/' + key + '.' + ext).put(payload.image)
+          return firebase.storage().ref('events/' + key + '/' + key + '.' + ext).put(payload.image)
         })
         .then(fileData => {
           let imagePath = fileData.metadata.fullPath
@@ -165,7 +173,9 @@ export default {
           })
         })
         .catch(function (error) {
-          console.error('Error adding event: ', error)
+          if (error.message !== 'No image') {
+            console.error('Error adding event: ', error)
+          }
         })
     },
     toogleRecruitingFromEvent ({commit}, payload) {

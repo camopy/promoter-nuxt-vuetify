@@ -120,31 +120,60 @@
         </v-layout>
       </v-container>
     </v-content>
-    <v-btn
-      fab
+    <v-speed-dial        
       bottom
       right
-      color="pink"
-      dark
+      direction="top"
+      open-on-hover
+      transition="slide-y-reverse-transition"
       fixed
-      @click.stop="dialog = !dialog"
       v-if="userIsAuthenticated && userIsCrew"
     >
-      <v-icon>add</v-icon>
-    </v-btn>
-    <CreateEvent :visible="dialog" @close="dialog=false"></CreateEvent>
+      <v-btn
+        slot="activator"        
+        color="blue darken-2"
+        dark
+        fab
+      >
+        <v-icon>add</v-icon>
+        <v-icon>close</v-icon>
+      </v-btn>
+      <v-btn
+        fab
+        dark
+        small
+        color="green"
+        @click.stop="createEventDialog = !createEventDialog"
+      >
+        <v-icon>event</v-icon>
+      </v-btn>
+      <v-btn
+        fab
+        dark
+        small
+        color="indigo"
+        @click.stop="createTaskDialog = !createTaskDialog"
+      >
+        <v-icon>assignment</v-icon>
+      </v-btn>      
+    </v-speed-dial>    
+    <CreateEvent :visible="createEventDialog" @close="createEventDialog=false"></CreateEvent>
+    <CreateTask :visible="createTaskDialog" @close="createTaskDialog=false"></CreateTask>
   </v-app>
 </template>
 
 <script>
   import CreateEvent from '@/components/event/CreateEvent'
+  import CreateTask from '@/components/task/CreateTask'
 
   export default {
     components: {
-      CreateEvent
+      CreateEvent,
+      CreateTask
     },
     data: () => ({
-      dialog: false,
+      createEventDialog: false,
+      createTaskDialog: false,
       drawer: null
     }),
     computed: {
