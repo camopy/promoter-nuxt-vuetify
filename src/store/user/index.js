@@ -237,8 +237,33 @@ export default {
               console.log('Error getting events:', error)
             })
           } else {
-            commit('setUser', updatedUser)
-            commit('setLoading', false)
+            db.collection('events').where('creatorId', '==', updatedUser.id).get()
+              .then((querySnapshot) => {
+                const events = []
+                querySnapshot.forEach((doc) => {
+                  events.push({
+                    id: doc.id,
+                    name: doc.data().name,
+                    state: doc.data().state,
+                    city: doc.data().city,
+                    date: doc.data().date,
+                    description: doc.data().description,
+                    gift: doc.data().gift,
+                    imageUrl: doc.data().imageUrl,
+                    creatorId: doc.data().creatorId,
+                    dateCreated: doc.data().dateCreated,
+                    recruiting: doc.data().recruiting
+                  })
+                })
+                updatedUser.events = events
+                commit('setLoadedEventsFromUser', events)
+                commit('setUser', updatedUser)
+                commit('setLoading', false)
+              })
+            .catch(function (error) {
+              console.error('Error fetching events from user: ', error)
+              commit('setLoading', false)
+            })
           }
         })
       .catch(function (error) {

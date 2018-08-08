@@ -67,34 +67,6 @@ export default {
         commit('setLoading', false)
       })
     },
-    loadEventsFromUser ({commit}, payload) {
-      commit('setLoading', true)
-      db.collection('events').where('creatorId', '==', payload.uid).get()
-        .then((querySnapshot) => {
-          const events = []
-          querySnapshot.forEach((doc) => {
-            events.push({
-              id: doc.id,
-              name: doc.data().name,
-              state: doc.data().state,
-              city: doc.data().city,
-              date: doc.data().date,
-              description: doc.data().description,
-              gift: doc.data().gift,
-              imageUrl: doc.data().imageUrl,
-              creatorId: doc.data().creatorId,
-              dateCreated: doc.data().dateCreated,
-              recruiting: doc.data().recruiting
-            })
-          })
-          commit('setLoadedEventsFromUser', events)
-          commit('setLoading', false)
-        })
-      .catch(function (error) {
-        console.error('Error fetching events from user: ', error)
-        commit('setLoading', false)
-      })
-    },
     createEvent ({commit, getters}, payload) {
       const event = {
         name: payload.name,
