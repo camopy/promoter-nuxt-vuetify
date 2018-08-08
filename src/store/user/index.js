@@ -37,17 +37,17 @@ export default {
       commit('setLoading', true)
       const user = getters.user
 
-      let eventDoc = db.collection('users/' + user.id + '/events').doc(payload)
-      let userDoc = db.collection('events/' + payload + '/promoters').doc(user.id)
+      let eventDoc = db.collection('users/' + user.id + '/events').doc(payload.id)
+      let userDoc = db.collection('events/' + payload.id + '/promoters').doc(user.id)
 
       var batch = db.batch()
       const applyDate = moment().toISOString()
-      batch.set(eventDoc, {status: 'applying', applyDate: applyDate, name: user.name})
+      batch.set(eventDoc, {status: 'applying', applyDate: applyDate, name: payload.name})
       batch.set(userDoc, {status: 'applying', applyDate: applyDate, name: user.name})
       batch.commit()
         .then(() => {
           commit('setLoading', false)
-          commit('applyUserForEvent', {id: payload, status: 'applying'})
+          commit('applyUserForEvent', {id: payload.id, status: 'applying'})
           console.log('User applied to event.')
         })
       .catch(error => {
@@ -186,11 +186,52 @@ export default {
               .then((querySnapshot) => {
                 let events = []
                 querySnapshot.forEach((doc) => {
-                  events.push({id: doc.id, status: doc.data().status})
+                  events.push({
+                    id: doc.id,
+                    name: doc.data().name,
+                    status: doc.data().status,
+                    applyDate: doc.data().applyDate,
+                    updateDate: doc.data().updateDate
+                  })
                 })
                 updatedUser.events = events
                 commit('setUser', updatedUser)
-                commit('setLoading', false)
+                return events
+              })
+              .then(events => {
+                if (events) {
+                  const eventsPromoting = events.filter(event => event.status === 'promoting')
+                  const tasks = []
+                  const promises = []
+                  eventsPromoting.forEach((event) => {
+                    const promise = db.collection('events/' + event.id + '/tasks').get()
+                      .then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                          tasks.push({
+                            id: doc.id,
+                            name: doc.data().name,
+                            date: doc.data().date,
+                            finalDate: doc.data().finalDate,
+                            description: doc.data().description,
+                            imageUrl: doc.data().imageUrl,
+                            creatorId: doc.data().creatorId,
+                            dateCreated: doc.data().dateCreated
+                          })
+                        })
+                      })
+                    .catch(function (error) {
+                      console.error('Error fetching tasks: ', error)
+                      commit('setLoading', false)
+                    })
+                    promises.push(promise)
+                  })
+                  Promise.all(promises).then(() => {
+                    commit('setLoadedTasks', tasks)
+                    commit('setLoading', false)
+                  })
+                } else {
+                  commit('setLoading', false)
+                }
               })
             .catch(function (error) {
               console.log('Error getting events:', error)

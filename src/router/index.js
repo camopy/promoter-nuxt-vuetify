@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Signup from '@/components/user/Signup'
 import Signin from '@/components/user/Signin'
 import Tasks from '@/components/task/Tasks'
+import Task from '@/components/task/Task'
 import Events from '@/components/event/Events'
 import Event from '@/components/event/Event'
 import CrewList from '@/components/crew/CrewList'
@@ -37,6 +38,13 @@ export default new Router({
       path: '/tasks',
       name: 'Tasks',
       component: Tasks,
+      beforeEnter: AuthGuard
+    },
+    {
+      path: '/tasks/:id',
+      name: 'Task',
+      component: Task,
+      props: true,
       beforeEnter: AuthGuard
     },
     {

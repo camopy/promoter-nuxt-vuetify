@@ -9,34 +9,12 @@ export default {
   mutations: {
     createTask (state, payload) {
       state.loadedTasks.push(payload)
+    },
+    setLoadedTasks (state, payload) {
+      state.loadedTasks = payload
     }
   },
   actions: {
-    loadTasks ({commit}, payload) {
-      commit('setLoading', true)
-      db.collection('tasks').get()
-        .then((querySnapshot) => {
-          const tasks = []
-          querySnapshot.forEach((doc) => {
-            tasks.push({
-              id: doc.id,
-              name: doc.data().name,
-              date: doc.data().date,
-              finalDate: doc.data().finalDate,
-              description: doc.data().description,
-              imageUrl: doc.data().imageUrl,
-              creatorId: doc.data().creatorId,
-              dateCreated: doc.data().dateCreated
-            })
-          })
-          commit('setLoadedTasks', tasks)
-          commit('setLoading', false)
-        })
-      .catch(function (error) {
-        console.error('Error fetching tasks: ', error)
-        commit('setLoading', false)
-      })
-    },
     createTask ({commit, getters}, payload) {
       const task = {
         name: payload.name,

@@ -23,7 +23,7 @@
         <v-layout row wrap>
           <v-flex xs12>
             <v-card-actions>
-              <v-btn 
+              <v-btn
                 class="red--text darken-1"
                 flat
                 @click="applyDialog = false">Cancelar
@@ -44,7 +44,7 @@
 <script>
 export default {
   props: [
-    'eventId'
+    'event'
   ],
   data () {
     return {
@@ -54,23 +54,23 @@ export default {
   computed: {
     userIsPromoting () {
       return this.$store.getters.user.events.findIndex(event => {
-        return event.id === this.eventId && event.status === 'promoting'
+        return event.id === this.event.id && event.status === 'promoting'
       }) >= 0
     },
     userIsApplying () {
       return this.$store.getters.user.events.findIndex(event => {
-        return event.id === this.eventId && event.status === 'applying'
+        return event.id === this.event.id && event.status === 'applying'
       }) >= 0
     }
   },
   methods: {
     onAgree () {
       if (this.userIsApplying) {
-        this.$store.dispatch('unapplyUserFromEvent', this.eventId)
+        this.$store.dispatch('unapplyUserFromEvent', this.event.id)
       } else if (this.userIsPromoting) {
-        this.$store.dispatch('updateUserStatusFromEvent', {id: this.eventId, status: 'left'})
+        this.$store.dispatch('updateUserStatusFromEvent', {id: this.event.id, status: 'left'})
       } else {
-        this.$store.dispatch('applyUserForEvent', this.eventId)
+        this.$store.dispatch('applyUserForEvent', {id: this.event.id, name: this.event.name})
       }
       this.applyDialog = false
     }

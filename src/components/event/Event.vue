@@ -4,7 +4,7 @@
       <v-flex xs12 class="text-xs-center">
         <v-progress-circular
           indeterminate
-          color="primary"          
+          color="primary"
         ></v-progress-circular>
       </v-flex>
     </v-layout>
@@ -29,7 +29,7 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <app-event-apply-dialog :eventId="id" v-if="userIsAuthenticated && !userIsCrew && !userWasDeclined && (eventIsRecruiting || userIsApplying || userIsPromoting)"></app-event-apply-dialog>
+              <app-event-apply-dialog :event="event" v-if="userIsAuthenticated && !userIsCrew && !userWasDeclined && (eventIsRecruiting || userIsApplying || userIsPromoting)"></app-event-apply-dialog>
             </v-card-actions>
           </v-card>
         </v-flex>
