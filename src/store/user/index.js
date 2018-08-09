@@ -177,7 +177,7 @@ export default {
             }
             return updatedUser
           } else {
-            console.log('User not found!')
+            return Promise.reject(new Error('Usuário não encontrado'))
           }
         })
         .then(updatedUser => {
@@ -185,6 +185,8 @@ export default {
             db.collection('users/' + updatedUser.id + '/events').get()
               .then((querySnapshot) => {
                 let events = []
+                let tasks = []
+                var promises = []
                 querySnapshot.forEach((doc) => {
                   events.push({
                     id: doc.id,
@@ -193,48 +195,43 @@ export default {
                     applyDate: doc.data().applyDate,
                     updateDate: doc.data().updateDate
                   })
-                })
-                updatedUser.events = events
-                commit('setUser', updatedUser)
-                return events
-              })
-              .then(events => {
-                if (events) {
-                  const eventsPromoting = events.filter(event => event.status === 'promoting')
-                  const tasks = []
-                  const promises = []
-                  eventsPromoting.forEach((event) => {
-                    const promise = db.collection('events/' + event.id + '/tasks').get()
-                      .then((querySnapshot) => {
+                  if (doc.data().status === 'promoting') {
+                    const promise = db.collection('users/' + updatedUser.id + '/events/' + doc.id + '/tasks')
+                      .where('status', '==', 'unfinished').get()
+                      .then(querySnapshot => {
                         querySnapshot.forEach((doc) => {
                           tasks.push({
                             id: doc.id,
                             name: doc.data().name,
-                            date: doc.data().date,
-                            finalDate: doc.data().finalDate,
+                            status: doc.data().status,
                             description: doc.data().description,
-                            imageUrl: doc.data().imageUrl,
-                            creatorId: doc.data().creatorId,
-                            dateCreated: doc.data().dateCreated
+                            date: doc.data().date,
+                            finalDate: doc.data().finalDate
                           })
                         })
                       })
-                    .catch(function (error) {
-                      console.error('Error fetching tasks: ', error)
-                      commit('setLoading', false)
-                    })
+                      .catch(function (error) {
+                        // console.error('Error fetching tasks: ', error)
+                        return Promise.reject(error)
+                      })
                     promises.push(promise)
-                  })
-                  Promise.all(promises).then(() => {
-                    commit('setLoadedTasks', tasks)
-                    commit('setLoading', false)
-                  })
-                } else {
+                  }
+                })
+                Promise.all(promises).then(() => {
+                  updatedUser.events = events
+                  updatedUser.tasks = tasks
+                  commit('setUser', updatedUser)
+                  commit('setLoadedTasks', tasks)
                   commit('setLoading', false)
-                }
+                })
+                .catch(error => {
+                  commit('setLoading', false)
+                  console.error('Error fetching tasks: ', error)
+                })
               })
             .catch(function (error) {
               console.log('Error getting events:', error)
+              commit('setLoading', false)
             })
           } else {
             db.collection('events').where('creatorId', '==', updatedUser.id).get()
@@ -268,6 +265,7 @@ export default {
         })
       .catch(function (error) {
         console.log('Error getting user:', error)
+        commit('setLoading', false)
       })
     },
     logout ({commit}) {

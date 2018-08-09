@@ -25,7 +25,7 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <!-- <app-event-apply-dialog :event="event" v-if="userIsAuthenticated && !userIsCrew && !userWasDeclined && (eventIsRecruiting || userIsApplying || userIsPromoting)"></app-event-apply-dialog> -->
+              <app-task-done-dialog :task="task"></app-task-done-dialog>
             </v-card-actions>
           </v-card>
         </v-flex>

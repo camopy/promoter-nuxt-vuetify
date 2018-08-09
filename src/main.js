@@ -9,6 +9,7 @@ import 'vuetify/dist/vuetify.min.css'
 import { store } from './store'
 import AlertCmp from './components/Shared/Alert'
 import ApplyDialog from './components/event/apply/ApplyDialog'
+import DoneDialog from './components/task/done/DoneDialog'
 import moment from 'moment'
 
 Vue.use(Vuetify)
@@ -20,6 +21,7 @@ Vue.config.productionTip = false
 
 Vue.component('app-alert', AlertCmp)
 Vue.component('app-event-apply-dialog', ApplyDialog)
+Vue.component('app-task-done-dialog', DoneDialog)
 
 /* eslint-disable no-new */
 new Vue({

@@ -4,7 +4,8 @@ import * as moment from 'moment'
 
 export default {
   state: {
-    loadedTasks: []
+    loadedTasks: [],
+    loadedTasksFromEvent: []
   },
   mutations: {
     createTask (state, payload) {
@@ -12,6 +13,9 @@ export default {
     },
     setLoadedTasks (state, payload) {
       state.loadedTasks = payload
+    },
+    setLoadedTasksFromEvent (state, payload) {
+      state.loadedTasksFromEvent = payload
     }
   },
   actions: {
@@ -22,7 +26,8 @@ export default {
         finalDate: payload.finalDate,
         description: payload.description,
         creatorId: getters.user.id,
-        dateCreated: moment().toISOString()
+        dateCreated: moment().toISOString(),
+        status: 'waiting'
       }
       let key
       db.collection('events/' + payload.eventId + '/tasks').add(task)
@@ -62,14 +67,64 @@ export default {
           })
           .catch(function (error) {
             // The document probably doesn't exist.
-            console.error('Error updating event: ', error)
+            console.error('Error updating task: ', error)
           })
         })
         .catch(function (error) {
           if (error.message !== 'No image') {
-            console.error('Error adding event: ', error)
+            console.error('Error adding task: ', error)
           }
         })
+    },
+    loadTasksFromEvent ({commit}, payload) {
+      commit('setLoading', true)
+      db.collection('events').doc(payload.id).collection('tasks').get()
+        .then((querySnapshot) => {
+          const tasks = []
+          querySnapshot.forEach((doc) => {
+            tasks.push({
+              id: doc.id,
+              name: doc.data().name,
+              description: doc.data().description,
+              date: doc.data().date,
+              finalDate: doc.data().finalDate,
+              status: doc.data().status
+            })
+          })
+          commit('setLoadedTasksFromEvent', tasks)
+          commit('setLoading', false)
+        })
+      .catch(function (error) {
+        console.error('Error fetching tasks from event: ', error)
+        commit('setLoading', false)
+      })
+    },
+    releaseTask ({commit}, payload) {
+      commit('setLoading', true)
+      db.collection('events').doc(payload.eventId).collection('promoters').where('status', '==', 'promoting').get()
+        .then((querySnapshot) => {
+          const batch = db.batch()
+          querySnapshot.forEach((promoter) => {
+            console.log(payload)
+            let taskDoc = db.collection('users/' + promoter.id + '/events/' + payload.eventId + '/tasks').doc(payload.task.id)
+            batch.set(taskDoc, {
+              ...payload.task,
+              status: 'unfinished'})
+          })
+          batch.commit()
+            .then(() => {
+              commit('setLoading', false)
+              console.log('Task released.')
+            })
+          .catch(error => {
+            commit('setLoading', false)
+            console.error('Error releasing task: ', error)
+          })
+        })
+      .catch(function (error) {
+        console.error('Error fetching events from user: ', error)
+        commit('setLoading', false)
+      })
     }
   },
   getters: {
@@ -82,6 +137,9 @@ export default {
           return task.id === taskId
         })
       }
+    },
+    loadedTasksFromEvent (state) {
+      return state.loadedTasksFromEvent
     }
   }
 }
