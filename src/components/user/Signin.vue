@@ -10,7 +10,7 @@
         <v-card>
           <v-card-text>
             <v-container>
-              <v-form ref="form" v-model="valid" lazy-validation>                
+              <v-form ref="form" v-model="valid" lazy-validation>
                 <v-layout row>
                   <v-flex xs12>
                     <v-text-field
@@ -36,21 +36,21 @@
                       :rules="passwordRules"
                     ></v-text-field>
                   </v-flex>
-                </v-layout>                
+                </v-layout>
                 <v-layout row>
-                  <v-flex xs12 sm6>                     
+                  <v-flex xs12 sm6>
                     <v-btn flat :disabled="!valid || loading" :loading="loading" @click="onSignin">
                       Entrar
                       <span slot="loader" class="custom-loader">
                         <v-icon light>cached</v-icon>
                       </span>
-                    </v-btn>                    
+                    </v-btn>
                   </v-flex>
                   <v-spacer></v-spacer>
-                  <v-flex xs12 sm6>                     
+                  <v-flex xs12 sm6>
                     <v-btn flat @click="onSignup">
-                      Criar conta                      
-                    </v-btn>                    
+                      Criar conta
+                    </v-btn>
                   </v-flex>
                 </v-layout>
               </v-form>
@@ -94,7 +94,7 @@ export default {
   watch: {
     user (value) {
       if (value !== null & value !== undefined) {
-        this.$router.push('/tasks')
+        value.accountType === 'crew' ? this.$router.push('/taskReports') : this.$router.push('/tasks')
       }
     }
   },

@@ -162,13 +162,13 @@ export default {
         events: []
       })
     },
-    fetchUserData ({commit, getters}) {
+    fetchUserData ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('users').doc(getters.user.id).get()
+      db.collection('users').doc(payload.uid).get()
         .then(function (doc) {
           if (doc.exists) {
             const updatedUser = {
-              id: getters.user.id,
+              id: payload.uid,
               name: doc.data().name,
               email: doc.data().email,
               accountType: doc.data().accountType,
@@ -187,26 +187,33 @@ export default {
                 let events = []
                 let tasks = []
                 var promises = []
-                querySnapshot.forEach((doc) => {
+                querySnapshot.forEach((event) => {
+                  const taskReport = {}
                   events.push({
-                    id: doc.id,
-                    name: doc.data().name,
-                    status: doc.data().status,
-                    applyDate: doc.data().applyDate,
-                    updateDate: doc.data().updateDate
+                    id: event.id,
+                    name: event.data().name,
+                    status: event.data().status,
+                    applyDate: event.data().applyDate,
+                    updateDate: event.data().updateDate
                   })
-                  if (doc.data().status === 'promoting') {
-                    const promise = db.collection('users/' + updatedUser.id + '/events/' + doc.id + '/tasks')
-                      .where('status', '==', 'unfinished').get()
+                  taskReport.eventId = event.id
+                  taskReport.eventName = event.data().name
+                  taskReport.promoterId = updatedUser.id
+                  taskReport.promoterName = updatedUser.name
+                  if (event.data().status === 'promoting') {
+                    const promise = db.collection('users/' + updatedUser.id + '/events/' + event.id + '/taskReports')
+                      .where('status', '==', 'notstarted').get()
                       .then(querySnapshot => {
                         querySnapshot.forEach((doc) => {
                           tasks.push({
+                            ...taskReport,
                             id: doc.id,
                             name: doc.data().name,
                             status: doc.data().status,
                             description: doc.data().description,
                             date: doc.data().date,
-                            finalDate: doc.data().finalDate
+                            finalDate: doc.data().finalDate,
+                            eventId: doc.ref.parent.parent.id
                           })
                         })
                       })
@@ -237,25 +244,66 @@ export default {
             db.collection('events').where('creatorId', '==', updatedUser.id).get()
               .then((querySnapshot) => {
                 const events = []
-                querySnapshot.forEach((doc) => {
+                const promoterPromises = []
+                const tasks = []
+                querySnapshot.forEach((event) => {
+                  const taskReport = {}
                   events.push({
-                    id: doc.id,
-                    name: doc.data().name,
-                    state: doc.data().state,
-                    city: doc.data().city,
-                    date: doc.data().date,
-                    description: doc.data().description,
-                    gift: doc.data().gift,
-                    imageUrl: doc.data().imageUrl,
-                    creatorId: doc.data().creatorId,
-                    dateCreated: doc.data().dateCreated,
-                    recruiting: doc.data().recruiting
+                    id: event.id,
+                    name: event.data().name,
+                    state: event.data().state,
+                    city: event.data().city,
+                    date: event.data().date,
+                    description: event.data().description,
+                    gift: event.data().gift,
+                    imageUrl: event.data().imageUrl,
+                    creatorId: event.data().creatorId,
+                    dateCreated: event.data().dateCreated,
+                    recruiting: event.data().recruiting,
+                    status: event.data().status
                   })
+                  if (event.data().status === 'promoting') {
+                    taskReport.eventId = event.id
+                    taskReport.eventName = event.data().name
+                    const promoterPromise = event.ref.collection('promoters').where('status', '==', 'promoting').get()
+                      .then(querySnapshot => {
+                        const taskPromises = []
+                        querySnapshot.forEach(promoter => {
+                          taskReport.promoterId = promoter.id
+                          taskReport.promoterName = promoter.data().name
+                          const taskPromise = db.collection('users/' + promoter.id + '/events/' + promoter.ref.parent.parent.id + '/taskReports')
+                            .where('status', '==', 'done').get()
+                            .then(querySnapshot => {
+                              querySnapshot.forEach(task => {
+                                tasks.push({
+                                  ...taskReport,
+                                  id: task.id,
+                                  name: task.data().name,
+                                  description: task.data().description,
+                                  date: task.data().date,
+                                  finalDate: task.data().finalDate,
+                                  status: task.data().status
+                                })
+                              })
+                            })
+                          taskPromises.push(taskPromise)
+                        })
+                        return Promise.all(taskPromises)
+                      })
+                      .catch(function (error) {
+                        console.error('Error fetching promoters from events: ', error)
+                        commit('setLoading', false)
+                      })
+                    promoterPromises.push(promoterPromise)
+                  }
                 })
-                updatedUser.events = events
-                commit('setLoadedEventsFromUser', events)
-                commit('setUser', updatedUser)
-                commit('setLoading', false)
+                Promise.all(promoterPromises).then(() => {
+                  updatedUser.events = events
+                  commit('setLoadedTaskReports', tasks)
+                  commit('setLoadedEventsFromUser', events)
+                  commit('setUser', updatedUser)
+                  commit('setLoading', false)
+                })
               })
             .catch(function (error) {
               console.error('Error fetching events from user: ', error)

@@ -9,7 +9,7 @@ import 'vuetify/dist/vuetify.min.css'
 import { store } from './store'
 import AlertCmp from './components/Shared/Alert'
 import ApplyDialog from './components/event/apply/ApplyDialog'
-import DoneDialog from './components/task/done/DoneDialog'
+import ReportDialog from './components/task/report/ReportDialog'
 import moment from 'moment'
 
 Vue.use(Vuetify)
@@ -21,7 +21,7 @@ Vue.config.productionTip = false
 
 Vue.component('app-alert', AlertCmp)
 Vue.component('app-event-apply-dialog', ApplyDialog)
-Vue.component('app-task-done-dialog', DoneDialog)
+Vue.component('app-task-report-dialog', ReportDialog)
 
 /* eslint-disable no-new */
 new Vue({
@@ -41,9 +41,10 @@ new Vue({
     })
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
-        this.$store.dispatch('autoSignIn', user)
-        this.$store.dispatch('fetchUserData')
+        // this.$store.dispatch('autoSignIn', user)
+        this.$store.dispatch('fetchUserData', user)
         this.$store.dispatch('loadPromoters')
+        // this.$store.dispatch('loadTasksFromPromoters')
       }
     })
   }

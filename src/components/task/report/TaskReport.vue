@@ -9,23 +9,25 @@
       </v-flex>
     </v-layout>
     <v-slide-y-transition mode="out-in" v-else>
-      <v-layout row wrap v-if="task">
+      <v-layout row wrap v-if="report">
         <v-flex xs12>
           <v-card>
             <v-card-title primary-title>
               <div>
-                <h1>{{ task.name }}</h1>
+                <h1>{{ report.name }} - {{ report.eventName }} - {{ report.promoterName }}</h1>
               </div>
             </v-card-title>
             <v-card-text>
-              <div>{{formatDate(task.date)}}</div>
+              <div>{{formatDate(report.date)}}</div>
             </v-card-text>
             <v-card-text>
-              <div>{{task.description}}</div>
+              <div>{{report.description}}</div>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <app-task-report-dialog :report="task" :label="'CONCLUIDA'"></app-task-report-dialog>
+              <app-task-report-dialog :report="report" :label="'NÃO FEITA'"></app-task-report-dialog>
+              <app-task-report-dialog :report="report" :label="'INCOMPLETA'"></app-task-report-dialog>
+              <app-task-report-dialog :report="report" :label="'COMPLETA'"></app-task-report-dialog>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -36,10 +38,10 @@
 
 <script>
 export default {
-  props: ['id'],
+  props: ['reportId'],
   computed: {
-    task () {
-      return this.$store.getters.loadedTask(this.id)
+    report () {
+      return this.$store.getters.loadedTaskReport(this.reportId)
     },
     loading () {
       return this.$store.getters.loading

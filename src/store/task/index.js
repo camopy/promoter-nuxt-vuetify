@@ -5,7 +5,8 @@ import * as moment from 'moment'
 export default {
   state: {
     loadedTasks: [],
-    loadedTasksFromEvent: []
+    loadedTasksFromEvent: [],
+    loadedTaskReports: []
   },
   mutations: {
     createTask (state, payload) {
@@ -16,6 +17,16 @@ export default {
     },
     setLoadedTasksFromEvent (state, payload) {
       state.loadedTasksFromEvent = payload
+    },
+    setLoadedTaskReports (state, payload) {
+      state.loadedTaskReports = payload
+    },
+    updateTaskReport (state, payload) {
+      const loadedTasks = state.loadedTasks
+      loadedTasks.splice(loadedTasks.findIndex(report => report.id === payload.id), 1)
+
+      const loadedTaskReports = state.loadedTaskReports
+      loadedTaskReports.splice(loadedTaskReports.findIndex(report => report.id === payload.id), 1)
     }
   },
   actions: {
@@ -106,10 +117,10 @@ export default {
           const batch = db.batch()
           querySnapshot.forEach((promoter) => {
             console.log(payload)
-            let taskDoc = db.collection('users/' + promoter.id + '/events/' + payload.eventId + '/tasks').doc(payload.task.id)
+            let taskDoc = db.collection('users/' + promoter.id + '/events/' + payload.eventId + '/taskReports').doc(payload.task.id)
             batch.set(taskDoc, {
               ...payload.task,
-              status: 'unfinished'})
+              status: 'notstarted'})
           })
           batch.commit()
             .then(() => {
@@ -123,6 +134,70 @@ export default {
         })
       .catch(function (error) {
         console.error('Error fetching events from user: ', error)
+        commit('setLoading', false)
+      })
+    },
+    updateTaskReport ({commit}, payload) {
+      commit('setLoading', true)
+      db.collection('users/' + payload.promoterId + '/events/' + payload.eventId + '/taskReports/').doc(payload.id)
+        .update({
+          status: payload.status
+        })
+        .then(() => {
+          commit('setLoading', false)
+          console.log('Task report updated as: ' + payload.status)
+          commit('updateTaskReport', payload)
+        })
+        .catch(error => {
+          commit('setLoading', false)
+          console.log('Error updating task report:' + error)
+        })
+    },
+    loadTasksFromPromoters ({commit, getters}, payload) {
+      commit('setLoading', true)
+      const user = getters.user
+      db.collection('events')
+        .where('creatorId', '==', user.id)
+        .where('status', '==', 'promoting').get()
+        .then((querySnapshot) => {
+          const tasks = []
+          const promoterPromises = []
+          querySnapshot.forEach((doc) => {
+            const promoterPromise = doc.ref.collection('promoters').where('status', '==', 'promoting').get()
+              .then(querySnapshot => {
+                const taskPromises = []
+                querySnapshot.forEach(doc => {
+                  const taskPromise = db.collection('users/' + doc.id + '/events/' + doc.ref.parent.parent.id + '/taskReports')
+                    .where('status', '==', 'done').get()
+                    .then(querySnapshot => {
+                      querySnapshot.forEach(doc => {
+                        tasks.push({
+                          id: doc.id,
+                          name: doc.data().name,
+                          description: doc.data().description,
+                          date: doc.data().date,
+                          finalDate: doc.data().finalDate,
+                          status: doc.data().status
+                        })
+                      })
+                    })
+                  taskPromises.push(taskPromise)
+                })
+                return Promise.all(taskPromises)
+              })
+              .catch(function (error) {
+                console.error('Error fetching promoters from events: ', error)
+                commit('setLoading', false)
+              })
+            promoterPromises.push(promoterPromise)
+          })
+          Promise.all(promoterPromises).then(() => {
+            commit('setLoadedTaskReports', tasks)
+            commit('setLoading', false)
+          })
+        })
+      .catch(function (error) {
+        console.error('Error fetching promoting events: ', error)
         commit('setLoading', false)
       })
     }
@@ -140,6 +215,16 @@ export default {
     },
     loadedTasksFromEvent (state) {
       return state.loadedTasksFromEvent
+    },
+    loadedTaskReports (state) {
+      return state.loadedTaskReports
+    },
+    loadedTaskReport (state) {
+      return (reportId) => {
+        return state.loadedTaskReports.find((report) => {
+          return report.id === reportId
+        })
+      }
     }
   }
 }

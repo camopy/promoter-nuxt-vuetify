@@ -1,13 +1,13 @@
 <template>
-  <v-dialog persistent v-model="doneDialog">
+  <v-dialog persistent v-model="reportDialog">
     <v-btn accent slot="activator">
-      Concluir
+      {{label}}
     </v-btn>
     <v-card>
       <v-container fluid>
         <v-layout row wrap>
           <v-flex xs12>
-            <v-card-title >Marcar tarefa como conclída?</v-card-title>
+            <v-card-title >Marcar tarefa como {{label}} ?</v-card-title>
           </v-flex>
         </v-layout>
         <v-divider></v-divider>
@@ -17,7 +17,7 @@
               <v-btn
                 class="red--text darken-1"
                 flat
-                @click="doneDialog = false">Cancelar
+                @click="reportDialog = false">Cancelar
               </v-btn>
               <v-btn
                 class="green--text darken-1"
@@ -35,17 +35,35 @@
 <script>
 export default {
   props: [
-    'task'
+    'report',
+    'label'
   ],
   data () {
     return {
-      doneDialog: false
+      reportDialog: false
     }
   },
   methods: {
     onAgree () {
-      this.$store.dispatch('markTaskAsDone', {id: this.task.id, name: this.event.name})
-      this.doneDialog = false
+      switch (this.label) {
+        case 'CONCLUIDA':
+          this.report.status = 'done'
+          break
+        case 'NÃO FEITA':
+          this.report.status = 'notdone'
+          break
+        case 'INCOMPLETA':
+          this.report.status = 'incomplete'
+          break
+        case 'COMPLETA':
+          this.report.status = 'complete'
+          break
+        default:
+          console.log('Error selecting task report status')
+          break
+      }
+      this.$store.dispatch('updateTaskReport', this.report)
+      this.reportDialog = false
     }
   }
 }

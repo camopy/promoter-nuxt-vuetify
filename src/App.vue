@@ -116,11 +116,11 @@
     <v-content>
       <v-container fluid>
         <v-layout justify-center align-center>
-          <router-view></router-view>          
+          <router-view></router-view>
         </v-layout>
       </v-container>
     </v-content>
-    <v-speed-dial        
+    <v-speed-dial
       bottom
       right
       direction="top"
@@ -130,7 +130,7 @@
       v-if="userIsAuthenticated && userIsCrew"
     >
       <v-btn
-        slot="activator"        
+        slot="activator"
         color="blue darken-2"
         dark
         fab
@@ -155,8 +155,8 @@
         @click.stop="createTaskDialog = !createTaskDialog"
       >
         <v-icon>assignment</v-icon>
-      </v-btn>      
-    </v-speed-dial>    
+      </v-btn>
+    </v-speed-dial>
     <CreateEvent :visible="createEventDialog" @close="createEventDialog=false"></CreateEvent>
     <CreateTask :visible="createTaskDialog" @close="createTaskDialog=false"></CreateTask>
   </v-app>
@@ -185,7 +185,7 @@
         ]
         if (this.userIsAuthenticated && this.userIsCrew) {
           items = [
-            { icon: 'assignment', text: 'Missões', to: '/tasks' },
+            { icon: 'assignment', text: 'Missões', to: '/taskReports' },
             { icon: 'event_available', text: 'Eventos', to: '/events' },
             { icon: 'group', text: 'Organizações', to: '/crew' },
             { icon: 'person', text: 'Divulgadores', to: '/promoters' },
