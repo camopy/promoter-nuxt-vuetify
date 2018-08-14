@@ -123,6 +123,7 @@
     <v-speed-dial
       bottom
       right
+      v-model="fab"
       direction="top"
       open-on-hover
       transition="slide-y-reverse-transition"
@@ -131,6 +132,7 @@
     >
       <v-btn
         slot="activator"
+        v-model="fab"
         color="blue darken-2"
         dark
         fab
@@ -138,24 +140,33 @@
         <v-icon>add</v-icon>
         <v-icon>close</v-icon>
       </v-btn>
-      <v-btn
-        fab
-        dark
-        small
-        color="green"
-        @click.stop="createEventDialog = !createEventDialog"
-      >
-        <v-icon>event</v-icon>
-      </v-btn>
-      <v-btn
-        fab
-        dark
-        small
-        color="indigo"
-        @click.stop="createTaskDialog = !createTaskDialog"
-      >
-        <v-icon>assignment</v-icon>
-      </v-btn>
+      <v-tooltip left>
+        <v-btn
+          fab
+          slot="activator"
+          dark
+          small
+          color="green"
+          @click.stop="createEventDialog = !createEventDialog"
+        >
+          <v-icon>event</v-icon>
+        </v-btn>
+        <span>Novo evento</span>
+      </v-tooltip>
+      <v-tooltip left>
+        <v-btn
+          fab
+          slot="activator"
+          dark
+          small
+          color="indigo"
+          hint="test"
+          @click.stop="createTaskDialog = !createTaskDialog"
+        >
+          <v-icon>assignment</v-icon>
+        </v-btn>
+        <span>Nova missão</span>
+      </v-tooltip>
     </v-speed-dial>
     <CreateEvent :visible="createEventDialog" @close="createEventDialog=false"></CreateEvent>
     <CreateTask :visible="createTaskDialog" @close="createTaskDialog=false"></CreateTask>
@@ -174,7 +185,8 @@
     data: () => ({
       createEventDialog: false,
       createTaskDialog: false,
-      drawer: null
+      drawer: null,
+      fab: null
     }),
     computed: {
       items () {

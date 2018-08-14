@@ -80,7 +80,8 @@ export default {
         recruiting: false
       }
       let key
-      db.collection('events').add(event)
+      commit('setLoading', true)
+      return db.collection('events').add(event)
         .then(function (docRef) {
           key = docRef.id
           console.log('Event added with ID: ', key)
@@ -92,7 +93,7 @@ export default {
               ...event,
               id: key
             })
-            return Promise.reject(new Error('No image'))
+            return Promise.reject(new Error('Event created'))
           }
           const filename = payload.image.name
           const ext = filename.slice(filename.lastIndexOf('.'))
@@ -108,6 +109,7 @@ export default {
           })
           .then(function () {
             console.log('Event successfully updated with imageUrl!')
+            commit('setLoading', false)
             commit('createEvent', {
               ...event,
               id: key,
@@ -117,12 +119,16 @@ export default {
           .catch(function (error) {
             // The document probably doesn't exist.
             console.error('Error updating event: ', error)
+            commit('setLoading', false)
+            return error
           })
         })
-        .catch(function (error) {
-          if (error.message !== 'No image') {
-            console.error('Error adding event: ', error)
+        .catch(function (response) {
+          if (response.message !== 'Event created') {
+            console.error('Error adding event: ', response)
           }
+          commit('setLoading', false)
+          return response
         })
     },
     toogleRecruitingFromEvent ({commit}, payload) {

@@ -94,8 +94,13 @@
       </v-container>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn flat color="primary" @click="dialog = false">Cancelar</v-btn>
-        <v-btn flat :disabled="!valid" @click="onCreateEvent">Salvar</v-btn>
+        <v-btn flat :disabled="loading" color="primary" @click="dialog = false">Cancelar</v-btn>
+        <v-btn flat :disabled="!valid || loading" :loading="loading" @click="onCreateEvent">
+          Salvar
+          <span slot="loader" class="custom-loader">
+            <v-icon light>cached</v-icon>
+          </span>
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -118,6 +123,9 @@ export default {
           this.$refs.form.reset()
         }
       }
+    },
+    loading () {
+      return this.$store.getters.loading
     },
     computedDateFormatted () {
       return this.formatDate(this.date)
@@ -170,7 +178,9 @@ export default {
           gift: this.gift
         }
         this.$store.dispatch('createEvent', eventData)
-        this.dialog = false
+        .then(response => {
+          this.dialog = false
+        })
       }
     },
     formatDate (date) {
@@ -198,3 +208,42 @@ export default {
   }
 }
 </script>
+
+<style>
+  .custom-loader {
+    animation: loader 1s infinite;
+    display: flex;
+  }
+  @-moz-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-o-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
