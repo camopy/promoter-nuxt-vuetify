@@ -197,7 +197,7 @@
         ]
         if (this.userIsAuthenticated && this.userIsCrew) {
           items = [
-            { icon: 'assignment', text: 'Missões', to: '/taskReports' },
+            { icon: 'assignment', text: 'Relatórios', to: '/taskReports' },
             { icon: 'event_available', text: 'Eventos', to: '/events' },
             { icon: 'group', text: 'Organizações', to: '/crew' },
             { icon: 'person', text: 'Divulgadores', to: '/promoters' },

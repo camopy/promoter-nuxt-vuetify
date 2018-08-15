@@ -8,8 +8,10 @@ import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 import { store } from './store'
 import AlertCmp from './components/Shared/Alert'
+import UrlIconCmp from './components/Shared/UrlIcon'
 import ApplyDialog from './components/event/apply/ApplyDialog'
 import ReportDialog from './components/task/report/ReportDialog'
+import EditProfileDialog from './components/user/profile/edit/EditProfileDialog'
 import moment from 'moment'
 
 Vue.use(Vuetify)
@@ -20,7 +22,9 @@ Vue.prototype.$moment = moment
 Vue.config.productionTip = false
 
 Vue.component('app-alert', AlertCmp)
+Vue.component('app-url-icon', UrlIconCmp)
 Vue.component('app-event-apply-dialog', ApplyDialog)
+Vue.component('app-profile-edit-dialog', EditProfileDialog)
 Vue.component('app-task-report-dialog', ReportDialog)
 
 /* eslint-disable no-new */
@@ -44,7 +48,6 @@ new Vue({
         // this.$store.dispatch('autoSignIn', user)
         this.$store.dispatch('fetchUserData', user)
         this.$store.dispatch('loadPromoters')
-        // this.$store.dispatch('loadTasksFromPromoters')
       }
     })
   }

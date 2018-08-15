@@ -116,7 +116,6 @@ export default {
         .then((querySnapshot) => {
           const batch = db.batch()
           querySnapshot.forEach((promoter) => {
-            console.log(payload)
             let taskDoc = db.collection('users/' + promoter.id + '/events/' + payload.eventId + '/taskReports').doc(payload.task.id)
             batch.set(taskDoc, {
               ...payload.task,
@@ -152,54 +151,6 @@ export default {
           commit('setLoading', false)
           console.log('Error updating task report:' + error)
         })
-    },
-    loadTasksFromPromoters ({commit, getters}, payload) {
-      commit('setLoading', true)
-      const user = getters.user
-      db.collection('events')
-        .where('creatorId', '==', user.id)
-        .where('status', '==', 'promoting').get()
-        .then((querySnapshot) => {
-          const tasks = []
-          const promoterPromises = []
-          querySnapshot.forEach((doc) => {
-            const promoterPromise = doc.ref.collection('promoters').where('status', '==', 'promoting').get()
-              .then(querySnapshot => {
-                const taskPromises = []
-                querySnapshot.forEach(doc => {
-                  const taskPromise = db.collection('users/' + doc.id + '/events/' + doc.ref.parent.parent.id + '/taskReports')
-                    .where('status', '==', 'done').get()
-                    .then(querySnapshot => {
-                      querySnapshot.forEach(doc => {
-                        tasks.push({
-                          id: doc.id,
-                          name: doc.data().name,
-                          description: doc.data().description,
-                          date: doc.data().date,
-                          finalDate: doc.data().finalDate,
-                          status: doc.data().status
-                        })
-                      })
-                    })
-                  taskPromises.push(taskPromise)
-                })
-                return Promise.all(taskPromises)
-              })
-              .catch(function (error) {
-                console.error('Error fetching promoters from events: ', error)
-                commit('setLoading', false)
-              })
-            promoterPromises.push(promoterPromise)
-          })
-          Promise.all(promoterPromises).then(() => {
-            commit('setLoadedTaskReports', tasks)
-            commit('setLoading', false)
-          })
-        })
-      .catch(function (error) {
-        console.error('Error fetching promoting events: ', error)
-        commit('setLoading', false)
-      })
     }
   },
   getters: {

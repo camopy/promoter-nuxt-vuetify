@@ -43,7 +43,7 @@ export default {
       var batch = db.batch()
       const applyDate = moment().toISOString()
       batch.set(eventDoc, {status: 'applying', applyDate: applyDate, name: payload.name})
-      batch.set(userDoc, {status: 'applying', applyDate: applyDate, name: user.name})
+      batch.set(userDoc, {status: 'applying', applyDate: applyDate, name: user.name, facebook: user.facebook, instagram: user.instagram})
       batch.commit()
         .then(() => {
           commit('setLoading', false)
@@ -173,6 +173,8 @@ export default {
               email: doc.data().email,
               accountType: doc.data().accountType,
               dateCreated: doc.data().dateCreated,
+              facebook: doc.data().facebook,
+              instagram: doc.data().instagram,
               events: []
             }
             return updatedUser
@@ -200,6 +202,8 @@ export default {
                   taskReport.eventName = event.data().name
                   taskReport.promoterId = updatedUser.id
                   taskReport.promoterName = updatedUser.name
+                  taskReport.promoterFacebook = updatedUser.facebook
+                  taskReport.promoterInstagram = updatedUser.instagram
                   if (event.data().status === 'promoting') {
                     const promise = db.collection('users/' + updatedUser.id + '/events/' + event.id + '/taskReports')
                       .where('status', '==', 'notstarted').get()
@@ -271,6 +275,8 @@ export default {
                         querySnapshot.forEach(promoter => {
                           taskReport.promoterId = promoter.id
                           taskReport.promoterName = promoter.data().name
+                          taskReport.promoterFacebook = promoter.data().facebook
+                          taskReport.promoterInstagram = promoter.data().instagram
                           const taskPromise = db.collection('users/' + promoter.id + '/events/' + promoter.ref.parent.parent.id + '/taskReports')
                             .where('status', '==', 'done').get()
                             .then(querySnapshot => {
@@ -319,6 +325,29 @@ export default {
     logout ({commit}) {
       firebase.auth().signOut()
       commit('setUser', null)
+    },
+    updateUserProfile ({commit, getters}, payload) {
+      commit('setLoading', true)
+      const user = getters.user
+      db.collection('users').doc(user.id)
+      .update({
+        updateDate: moment().toISOString(),
+        facebook: payload.facebook,
+        instagram: payload.instagram
+      })
+      .then(function () {
+        commit('setLoading', false)
+        commit('setUser', {
+          ...user,
+          facebook: payload.facebook,
+          instagram: payload.instagram
+        })
+        console.log('User profile updated')
+      })
+      .catch(function (error) {
+        commit('setLoading', false)
+        console.error('Error updating user profile: ', error)
+      })
     }
   },
   getters: {

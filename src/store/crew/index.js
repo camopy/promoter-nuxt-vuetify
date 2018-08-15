@@ -20,7 +20,9 @@ export default {
               id: doc.id,
               name: doc.data().name,
               email: doc.data().email,
-              dateCreated: doc.data().dateCreated
+              dateCreated: doc.data().dateCreated,
+              facebook: doc.data().facebook,
+              instagram: doc.data().instagram
             })
           })
           commit('setLoadedCrewList', crew)

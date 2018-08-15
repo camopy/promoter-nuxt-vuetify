@@ -17,7 +17,7 @@
                 <v-flex xs7 sm8 md9>
                   <v-card-title primary-title>
                     <div>
-                      <h1 class="mb-0">{{ task.name }}</h1>
+                      <h1 class="mb-0">{{ task.name }} - {{ task.eventName }}</h1>
                       <div>{{ task.date }}</div>
                     </div>
                   </v-card-title>

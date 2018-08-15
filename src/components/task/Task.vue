@@ -14,7 +14,7 @@
           <v-card>
             <v-card-title primary-title>
               <div>
-                <h1>{{ task.name }}</h1>
+                <h1>{{ task.name }} - {{ task.eventName }}</h1>
               </div>
             </v-card-title>
             <v-card-text>
@@ -35,7 +35,9 @@
 </template>
 
 <script>
+import Date from '@/mixins/Date'
 export default {
+  mixins: [Date],
   props: ['id'],
   computed: {
     task () {
@@ -46,11 +48,6 @@ export default {
     },
     userIsAuthenticated () {
       return this.$store.getters.user !== null && this.$store.getters.user !== undefined
-    }
-  },
-  methods: {
-    formatDate (date) {
-      return this.$moment(date).format('L')
     }
   }
 }

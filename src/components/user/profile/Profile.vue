@@ -4,7 +4,7 @@
       <v-flex xs12 class="text-xs-center">
         <v-progress-circular
           indeterminate
-          color="primary"          
+          color="primary"
         ></v-progress-circular>
       </v-flex>
     </v-layout>
@@ -16,10 +16,16 @@
               <div>
                 <h1>{{ user.name }}</h1>
               </div>
-            </v-card-title>            
+              <v-spacer></v-spacer>
+              <app-profile-edit-dialog :user="user"></app-profile-edit-dialog>
+            </v-card-title>
             <v-card-text>
-              <div>{{user.email}}</div>
-            </v-card-text> 
+              <div>
+                {{user.email}}
+                <app-url-icon v-if="user.facebook" :url="'https://www.facebook.com/' + user.facebook" icon="fa-facebook"></app-url-icon>
+                <app-url-icon v-if="user.instagram" :url="'https://www.instagram.com/' + user.instagram" icon="fa-instagram"></app-url-icon>
+              </div>
+            </v-card-text>
           </v-card>
         </v-flex>
       </v-layout>

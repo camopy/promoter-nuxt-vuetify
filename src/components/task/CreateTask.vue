@@ -113,10 +113,11 @@
 </template>
 
 <script>
+import Date from '@/mixins/Date'
 
 export default {
+  mixins: [Date],
   props: ['visible'],
-
   computed: {
     dialog: {
       get () {
@@ -184,12 +185,6 @@ export default {
         this.$store.dispatch('createTask', taskData)
         this.dialog = false
       }
-    },
-    formatDate (date) {
-      if (!date) return null
-
-      const [year, month, day] = date.split('-')
-      return `${month}/${day}/${year}`
     },
     onPickFile () {
       this.$refs.fileInput.click()

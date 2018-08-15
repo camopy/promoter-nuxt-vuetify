@@ -4,7 +4,7 @@
       <v-flex xs12 class="text-xs-center">
         <v-progress-circular
           indeterminate
-          color="primary"          
+          color="primary"
         ></v-progress-circular>
       </v-flex>
     </v-layout>
@@ -22,8 +22,12 @@
               height="400px"
             ></v-card-media> -->
             <v-card-text>
-              <div>{{promoter.email}}</div>
-            </v-card-text> 
+              <div>
+                {{promoter.email}}
+                <app-url-icon v-if="promoter.facebook" :url="'https://www.facebook.com/' + promoter.facebook" icon="fa-facebook"></app-url-icon>
+                <app-url-icon v-if="promoter.instagram" :url="'https://www.instagram.com/' + promoter.instagram" icon="fa-instagram"></app-url-icon>
+              </div>
+            </v-card-text>
           </v-card>
         </v-flex>
       </v-layout>

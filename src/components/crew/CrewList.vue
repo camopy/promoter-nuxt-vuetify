@@ -25,7 +25,6 @@
                   <v-card-title primary-title>
                     <div>
                       <h1 class="mb-0">{{ crew.name }}</h1>
-                      <div>{{ crew.email }}</div>
                     </div>
                   </v-card-title>
                   <v-card-actions>

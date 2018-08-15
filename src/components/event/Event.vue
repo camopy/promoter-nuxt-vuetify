@@ -25,7 +25,12 @@
               height="400px"
             ></v-card-media>
             <v-card-text>
-              <div>{{event.description}}</div>
+              <v-textarea
+                :value="event.description"
+                auto-grow
+                readonly
+              ></v-textarea>
+              <div>Prêmio: {{event.gift}}</div>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -39,7 +44,9 @@
 </template>
 
 <script>
+import Date from '@/mixins/Date'
 export default {
+  mixins: [Date],
   props: ['id'],
   computed: {
     event () {
@@ -71,11 +78,6 @@ export default {
       return this.$store.getters.user.events.findIndex(event => {
         return event.id === this.id && event.status === 'declined'
       }) >= 0
-    }
-  },
-  methods: {
-    formatDate (date) {
-      return this.$moment(date).format('L')
     }
   }
 }

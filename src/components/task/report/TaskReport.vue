@@ -14,7 +14,12 @@
           <v-card>
             <v-card-title primary-title>
               <div>
-                <h1>{{ report.name }} - {{ report.eventName }} - {{ report.promoterName }}</h1>
+                <h1>{{ report.name }} - {{ report.eventName }}</h1>
+                <h2>
+                  {{report.promoterName}}
+                  <app-url-icon v-if="report.promoterFacebook" :url="'https://www.facebook.com/' + report.promoterFacebook" icon="fa-facebook"></app-url-icon>
+                  <app-url-icon v-if="report.promoterInstagram" :url="'https://www.instagram.com/' + report.promoterInstagram" icon="fa-instagram"></app-url-icon>
+                </h2>
               </div>
             </v-card-title>
             <v-card-text>
@@ -37,7 +42,9 @@
 </template>
 
 <script>
+import Date from '@/mixins/Date'
 export default {
+  mixins: [Date],
   props: ['reportId'],
   computed: {
     report () {
@@ -48,11 +55,6 @@ export default {
     },
     userIsAuthenticated () {
       return this.$store.getters.user !== null && this.$store.getters.user !== undefined
-    }
-  },
-  methods: {
-    formatDate (date) {
-      return this.$moment(date).format('L')
     }
   }
 }
