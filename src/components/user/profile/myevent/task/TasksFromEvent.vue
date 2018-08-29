@@ -17,16 +17,16 @@
                 <v-flex xs7 sm8 md9>
                   <v-card-title primary-title>
                     <div>
-                      <h1 class="mb-0">{{ task.name }}</h1>
+                      <h1 class="mb-0">{{ task.name }} - {{ task.eventName }}</h1>
                     </div>
                   </v-card-title>
                   <v-card-actions>
-                    <v-btn flat :to="'/promoters/' + task.id">
+                    <v-btn flat :to="'/tasks/' + task.id">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
-                      Ver Tarefa
+                      Ver Missão
                     </v-btn>
                     <v-btn flat v-if="task.status === 'waiting'" @click="onReleaseTask(task)">
-                      Liberar tarefa
+                      Liberar Missão
                     </v-btn>
                   </v-card-actions>
                 </v-flex>

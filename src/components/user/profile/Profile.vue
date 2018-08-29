@@ -22,8 +22,8 @@
             <v-card-text>
               <div>
                 {{user.email}}
-                <app-url-icon v-if="user.facebook" :url="'https://www.facebook.com/' + user.facebook" icon="fa-facebook"></app-url-icon>
-                <app-url-icon v-if="user.instagram" :url="'https://www.instagram.com/' + user.instagram" icon="fa-instagram"></app-url-icon>
+                <app-url-icon v-if="user.facebook" :url="'https://www.facebook.com/' + user.facebook" icon="fab fa-facebook"></app-url-icon>
+                <app-url-icon v-if="user.instagram" :url="'https://www.instagram.com/' + user.instagram" icon="fab fa-instagram"></app-url-icon>
               </div>
             </v-card-text>
           </v-card>

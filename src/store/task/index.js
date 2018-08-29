@@ -38,6 +38,7 @@ export default {
         description: payload.description,
         creatorId: getters.user.id,
         dateCreated: moment().toISOString(),
+        imageUrl: '',
         status: 'waiting'
       }
       let key
@@ -51,6 +52,7 @@ export default {
           if (!payload.image) {
             commit('createTask', {
               ...task,
+              eventName: payload.eventName,
               id: key
             })
             return Promise.reject(new Error('No image'))
@@ -99,10 +101,13 @@ export default {
               description: doc.data().description,
               date: doc.data().date,
               finalDate: doc.data().finalDate,
-              status: doc.data().status
+              status: doc.data().status,
+              imageUrl: doc.data().imageUrl,
+              eventName: payload.name
             })
           })
           commit('setLoadedTasksFromEvent', tasks)
+          commit('setLoadedTasks', tasks)
           commit('setLoading', false)
         })
       .catch(function (error) {

@@ -78,6 +78,7 @@
                 <v-card-media
                   :src="imageUrl"
                   height="120px"
+                  contain
                   @click="onPickFile"
                 ></v-card-media>
               </v-card>
@@ -121,6 +122,9 @@ export default {
       set (value) {
         if (!value) {
           this.$emit('close')
+          this.$refs.fileInput.value = ''
+          this.image = null
+          this.imageUrl = ''
           this.$refs.form.reset()
         }
       }

@@ -217,6 +217,7 @@ export default {
                             description: doc.data().description,
                             date: doc.data().date,
                             finalDate: doc.data().finalDate,
+                            imageUrl: doc.data().imageUrl,
                             eventId: doc.ref.parent.parent.id
                           })
                         })

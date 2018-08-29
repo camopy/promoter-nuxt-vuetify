@@ -33,14 +33,14 @@
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Ver Evento
                     </v-btn>
-                    <v-btn flat :to="'/events/' + event.id" v-if="userIsCreator(event)">
+                    <v-btn flat v-if="userIsCreator(event)" :to="'/events/' + event.id + '/tasks'" @click="onViewTasks(event)">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Missões
                     </v-btn>
                     <v-btn flat :to="'/events/' + event.id + '/promoters'" @click="onViewPromoters(event)" v-if="userIsCreator(event)">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Divulgadores
-                    </v-btn>                    
+                    </v-btn>
                   </v-card-actions>
                 </v-flex>
               </v-layout>
@@ -68,6 +68,9 @@ export default {
   methods: {
     onViewPromoters (event) {
       this.$store.dispatch('loadPromotersFromEvent', event)
+    },
+    onViewTasks (event) {
+      this.$store.dispatch('loadTasksFromEvent', event)
     },
     userIsCreator (event) {
       if (!this.userIsAuthenticated) {

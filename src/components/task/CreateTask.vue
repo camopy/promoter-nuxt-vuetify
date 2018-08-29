@@ -96,6 +96,7 @@
                 <v-card-media
                   :src="imageUrl"
                   height="120px"
+                  contain
                   @click="onPickFile"
                 ></v-card-media>
               </v-card>
@@ -126,6 +127,9 @@ export default {
       set (value) {
         if (!value) {
           this.$emit('close')
+          this.$refs.fileInput.value = ''
+          this.image = null
+          this.imageUrl = ''
           this.$refs.form.reset()
         }
       }
@@ -180,7 +184,8 @@ export default {
           finalDate: this.finalDate,
           description: this.description,
           image: this.image,
-          eventId: this.event.id
+          eventId: this.event.id,
+          eventName: this.event.name
         }
         this.$store.dispatch('createTask', taskData)
         this.dialog = false

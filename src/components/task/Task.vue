@@ -23,7 +23,12 @@
             <v-card-text>
               <div>{{task.description}}</div>
             </v-card-text>
-            <v-card-actions>
+            <v-card-media
+              :src="task.imageUrl"
+              height="400px"
+              contain
+            ></v-card-media>
+            <v-card-actions v-if="userIsAuthenticated && userIsPromoter">
               <v-spacer></v-spacer>
               <app-task-report-dialog :report="task" :label="'CONCLUIDA'"></app-task-report-dialog>
             </v-card-actions>
@@ -48,6 +53,9 @@ export default {
     },
     userIsAuthenticated () {
       return this.$store.getters.user !== null && this.$store.getters.user !== undefined
+    },
+    userIsPromoter () {
+      return this.$store.getters.user.accountType === 'promoter'
     }
   }
 }
