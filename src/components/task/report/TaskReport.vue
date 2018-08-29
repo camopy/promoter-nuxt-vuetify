@@ -28,12 +28,16 @@
             <v-card-text>
               <div>{{report.description}}</div>
             </v-card-text>
-            <v-card-actions>
+            <v-card-actions v-if="userIsCrew">
               <v-spacer></v-spacer>
               <app-task-report-dialog :report="report" :label="'NÃO FEITA'"></app-task-report-dialog>
               <app-task-report-dialog :report="report" :label="'INCOMPLETA'"></app-task-report-dialog>
               <app-task-report-dialog :report="report" :label="'COMPLETA'"></app-task-report-dialog>
             </v-card-actions>
+            <v-card-text v-else>
+              <v-spacer></v-spacer>
+              <div>{{report.status}}</div>
+            </v-card-text>
           </v-card>
         </v-flex>
       </v-layout>
@@ -55,6 +59,9 @@ export default {
     },
     userIsAuthenticated () {
       return this.$store.getters.user !== null && this.$store.getters.user !== undefined
+    },
+    userIsCrew () {
+      return this.$store.getters.user.accountType === 'crew'
     }
   }
 }

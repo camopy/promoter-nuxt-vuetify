@@ -33,13 +33,17 @@
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Ver Evento
                     </v-btn>
-                    <v-btn flat :to="'/events/' + event.id + '/tasks'" @click="onViewTasks(event)">
+                    <v-btn flat v-if="userIsCrew" :to="'/events/' + event.id + '/tasks'" @click="onViewTasks(event)">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Missões
                     </v-btn>
-                    <v-btn flat :to="'/events/' + event.id + '/promoters'" @click="onViewPromoters(event)">
+                    <v-btn flat v-if="userIsCrew" :to="'/events/' + event.id + '/promoters'" @click="onViewPromoters(event)">
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Divulgadores
+                    </v-btn>
+                    <v-btn flat v-if="!userIsCrew" :to="'/events/' + event.id + '/taskReports'" @click="onViewTaskReports(event)">
+                      <!-- <v-icon left light>arrow_forward</v-icon> -->
+                      Relatórios
                     </v-btn>
                   </v-card-actions>
                 </v-flex>
@@ -60,6 +64,9 @@ export default {
     },
     loading () {
       return this.$store.getters.loading
+    },
+    userIsCrew () {
+      return this.$store.getters.user.accountType === 'crew'
     }
   },
   methods: {
@@ -68,6 +75,9 @@ export default {
     },
     onViewTasks (event) {
       this.$store.dispatch('loadTasksFromEvent', event)
+    },
+    onViewTaskReports (event) {
+      this.$store.dispatch('loadTaskReportsFromEvent', event)
     }
   }
 }

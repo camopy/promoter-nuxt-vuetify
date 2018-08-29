@@ -14,6 +14,7 @@ import Profile from '@/components/user/profile/Profile'
 import MyEvents from '@/components/user/profile/myevent/MyEvents'
 import PromotersFromEvent from '@/components/user/profile/myevent/promoter/PromotersFromEvent'
 import TasksFromEvent from '@/components/user/profile/myevent/task/TasksFromEvent'
+import TaskReportsFromEvent from '@/components/user/profile/myevent/task/report/TaskReportsFromEvent'
 import TaskReports from '@/components/task/report/TaskReports'
 import TaskReport from '@/components/task/report/TaskReport'
 import AuthGuard from './auth-guard'
@@ -107,6 +108,13 @@ export default new Router({
       name: 'TasksFromEvent',
       props: true,
       component: TasksFromEvent,
+      beforeEnter: AuthGuard
+    },
+    {
+      path: '/events/:eventId/taskReports',
+      name: 'TaskReportsFromEvent',
+      props: true,
+      component: TaskReportsFromEvent,
       beforeEnter: AuthGuard
     },
     {

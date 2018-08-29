@@ -28,7 +28,7 @@
                     <v-layout row>
                       <v-flex xs12>
                         <v-text-field
-                          prepend-icon="fa-facebook-square"
+                          prepend-icon="fab fa-facebook-square"
                           name="facebook"
                           v-model="facebook"
                           label="Facebook"
@@ -38,7 +38,7 @@
                     <v-layout row>
                       <v-flex xs12>
                         <v-text-field
-                          prepend-icon="fa-instagram"
+                          prepend-icon="fab fa-instagram"
                           name="instagram"
                           v-model="instagram"
                           label="Instagram"

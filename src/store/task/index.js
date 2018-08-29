@@ -6,7 +6,8 @@ export default {
   state: {
     loadedTasks: [],
     loadedTasksFromEvent: [],
-    loadedTaskReports: []
+    loadedTaskReports: [],
+    loadedTaskReportsFromEvent: []
   },
   mutations: {
     createTask (state, payload) {
@@ -20,6 +21,9 @@ export default {
     },
     setLoadedTaskReports (state, payload) {
       state.loadedTaskReports = payload
+    },
+    setLoadedTaskReportsFromEvent (state, payload) {
+      state.loadedTaskReportsFromEvent = payload
     },
     updateTaskReport (state, payload) {
       const loadedTasks = state.loadedTasks
@@ -156,6 +160,33 @@ export default {
           commit('setLoading', false)
           console.log('Error updating task report:' + error)
         })
+    },
+    loadTaskReportsFromEvent ({commit, getters}, payload) {
+      commit('setLoading', true)
+      const user = getters.user
+      db.collection('users/' + user.id + '/events/' + payload.id + '/taskReports').get()
+        .then((querySnapshot) => {
+          const taskReports = []
+          querySnapshot.forEach((report) => {
+            taskReports.push({
+              id: report.id,
+              name: report.data().name,
+              description: report.data().description,
+              date: report.data().date,
+              finalDate: report.data().finalDate,
+              status: report.data().status,
+              imageUrl: report.data().imageUrl,
+              eventName: payload.name
+            })
+          })
+          commit('setLoadedTaskReportsFromEvent', taskReports)
+          commit('setLoadedTaskReports', taskReports)
+          commit('setLoading', false)
+        })
+      .catch(function (error) {
+        console.error('Error fetching task reports from event: ', error)
+        commit('setLoading', false)
+      })
     }
   },
   getters: {
@@ -181,6 +212,9 @@ export default {
           return report.id === reportId
         })
       }
+    },
+    loadedTaskReportsFromEvent (state) {
+      return state.loadedTaskReportsFromEvent
     }
   }
 }

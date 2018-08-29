@@ -224,7 +224,8 @@
               text: 'Meu Painel',
               model: true,
               children: [
-                { icon: 'portrait', text: 'Perfil', to: '/profile' }
+                { icon: 'portrait', text: 'Perfil', to: '/profile' },
+                { icon: 'event_notes', text: 'Meus Eventos', to: '/myevents' }
               ]
             }
           ]

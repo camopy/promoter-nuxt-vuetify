@@ -234,6 +234,7 @@ export default {
                   updatedUser.tasks = tasks
                   commit('setUser', updatedUser)
                   commit('setLoadedTasks', tasks)
+                  commit('setLoadedEventsFromUser', events)
                   commit('setLoading', false)
                 })
                 .catch(error => {
