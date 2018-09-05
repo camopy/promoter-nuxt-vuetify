@@ -12,6 +12,8 @@ import UrlIconCmp from './components/Shared/UrlIcon'
 import ApplyDialog from './components/event/apply/ApplyDialog'
 import ReportDialog from './components/task/report/ReportDialog'
 import EditProfileDialog from './components/user/profile/edit/EditProfileDialog'
+import EditEventDialog from './components/event/edit/EditEventDialog'
+import EditTaskDialog from './components/task/edit/EditTaskDialog'
 import moment from 'moment'
 
 Vue.use(Vuetify)
@@ -25,6 +27,8 @@ Vue.component('app-alert', AlertCmp)
 Vue.component('app-url-icon', UrlIconCmp)
 Vue.component('app-event-apply-dialog', ApplyDialog)
 Vue.component('app-profile-edit-dialog', EditProfileDialog)
+Vue.component('app-event-edit-dialog', EditEventDialog)
+Vue.component('app-task-edit-dialog', EditTaskDialog)
 Vue.component('app-task-report-dialog', ReportDialog)
 
 /* eslint-disable no-new */

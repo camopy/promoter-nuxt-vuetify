@@ -1,14 +1,6 @@
 <template>
   <v-container fluid>
-    <v-layout row wrap v-if="loading">
-      <v-flex xs12 class="text-xs-center">
-        <v-progress-circular
-          indeterminate
-          color="primary"
-        ></v-progress-circular>
-      </v-flex>
-    </v-layout>
-    <v-slide-y-transition mode="out-in" v-else>
+    <v-slide-y-transition mode="out-in">
       <v-layout row wrap v-if="task">
         <v-flex xs12>
           <v-card>
@@ -16,6 +8,8 @@
               <div>
                 <h1>{{ task.name }} - {{ task.eventName }}</h1>
               </div>
+              <v-spacer></v-spacer>
+              <app-task-edit-dialog :task="task"></app-task-edit-dialog>
             </v-card-title>
             <v-card-text>
               <div>{{formatDate(task.date)}}</div>

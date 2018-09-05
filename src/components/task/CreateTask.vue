@@ -106,8 +106,13 @@
       </v-container>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn flat color="primary" @click="dialog = false">Cancelar</v-btn>
-        <v-btn flat :disabled="!valid" @click="onCreateTask">Salvar</v-btn>
+        <v-btn flat :disabled="loading" color="primary" @click="dialog = false">Cancelar</v-btn>
+        <v-btn flat :disabled="!valid || loading" :loading="loading" @click="onCreateTask">
+          Salvar
+          <span slot="loader" class="custom-loader">
+            <v-icon light>cached</v-icon>
+          </span>
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -142,6 +147,9 @@ export default {
     },
     events () {
       return this.$store.getters.loadedEventsFromUser
+    },
+    loading () {
+      return this.$store.getters.loading
     }
   },
 
@@ -188,7 +196,9 @@ export default {
           eventName: this.event.name
         }
         this.$store.dispatch('createTask', taskData)
-        this.dialog = false
+        .then(response => {
+          this.dialog = false
+        })
       }
     },
     onPickFile () {
@@ -210,3 +220,42 @@ export default {
   }
 }
 </script>
+
+<style>
+  .custom-loader {
+    animation: loader 1s infinite;
+    display: flex;
+  }
+  @-moz-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-o-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

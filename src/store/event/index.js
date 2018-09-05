@@ -18,6 +18,33 @@ export default {
       state.loadedEvents.push(payload)
       state.loadedEventsFromUser.push(payload)
     },
+    updateEvent (state, payload) {
+      const loadedEventsFromUser = state.loadedEventsFromUser
+      loadedEventsFromUser.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEventsFromUser[index].state = payload.state
+          loadedEventsFromUser[index].city = payload.city
+          loadedEventsFromUser[index].date = payload.date
+          loadedEventsFromUser[index].description = payload.description
+          loadedEventsFromUser[index].imageUrl = payload.imageUrl
+          loadedEventsFromUser[index].dateUpdated = payload.dateUpdated
+        }
+      })
+      state.loadedEventsFromUser = loadedEventsFromUser
+
+      const loadedEvents = state.loadedEvents
+      loadedEvents.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEvents[index].state = payload.state
+          loadedEvents[index].city = payload.city
+          loadedEvents[index].date = payload.date
+          loadedEvents[index].description = payload.description
+          loadedEvents[index].imageUrl = payload.imageUrl
+          loadedEvents[index].dateUpdated = payload.dateUpdated
+        }
+      })
+      state.loadedEvents = loadedEvents
+    },
     toogleRecruitingFromEvent (state, payload) {
       const recruiting = !payload.recruiting
 
@@ -77,6 +104,7 @@ export default {
         gift: payload.gift,
         creatorId: getters.user.id,
         dateCreated: moment().toISOString(),
+        imageUrl: '',
         recruiting: false
       }
       let key
@@ -126,6 +154,62 @@ export default {
         .catch(function (response) {
           if (response.message !== 'Event created') {
             console.error('Error adding event: ', response)
+          }
+          commit('setLoading', false)
+          return response
+        })
+    },
+    updateEvent ({commit, getters}, payload) {
+      const updatedEvent = {
+        state: payload.state,
+        city: payload.city,
+        date: payload.date,
+        description: payload.description,
+        imageUrl: payload.imageUrl,
+        dateUpdated: moment().toISOString()
+      }
+      commit('setLoading', true)
+      return db.collection('events').doc(payload.id).update(updatedEvent)
+        .then(() => {
+          if (!payload.image) {
+            commit('updateEvent', {
+              ...updatedEvent,
+              id: payload.id
+            })
+            console.log('Event updated')
+            return Promise.reject(new Error('Event updated'))
+          }
+          const filename = payload.image.name
+          const ext = filename.slice(filename.lastIndexOf('.'))
+          return firebase.storage().ref('events/' + payload.id + '/' + payload.id + '.' + ext).put(payload.image)
+        })
+        .then(fileData => {
+          let imagePath = fileData.metadata.fullPath
+          return firebase.storage().ref().child(imagePath).getDownloadURL()
+        })
+        .then(url => {
+          return db.collection('events').doc(payload.id).update({
+            imageUrl: url
+          })
+          .then(function () {
+            console.log('Event successfully updated with imageUrl!')
+            commit('setLoading', false)
+            commit('updateEvent', {
+              ...updatedEvent,
+              id: payload.id,
+              imageUrl: url
+            })
+          })
+          .catch(function (error) {
+            // The document probably doesn't exist.
+            console.error('Error updating event: ', error)
+            commit('setLoading', false)
+            return error
+          })
+        })
+        .catch(function (response) {
+          if (response.message !== 'Event updated') {
+            console.error('Error updating event: ', response)
           }
           commit('setLoading', false)
           return response

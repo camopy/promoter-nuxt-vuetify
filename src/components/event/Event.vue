@@ -1,14 +1,6 @@
 <template>
   <v-container fluid>
-    <v-layout row wrap v-if="loading">
-      <v-flex xs12 class="text-xs-center">
-        <v-progress-circular
-          indeterminate
-          color="primary"
-        ></v-progress-circular>
-      </v-flex>
-    </v-layout>
-    <v-slide-y-transition mode="out-in" v-else>
+    <v-slide-y-transition mode="out-in">
       <v-layout row wrap v-if="event">
         <v-flex xs12>
           <v-card>
@@ -16,6 +8,8 @@
               <div>
                 <h1>{{ event.name }}</h1>
               </div>
+              <v-spacer></v-spacer>
+              <app-event-edit-dialog v-if="userIsCreator" :event="event"></app-event-edit-dialog>
             </v-card-title>
             <v-card-text>
               <div>{{formatDate(event.date)}} - {{event.city}}, {{event.state}}</div>
@@ -23,6 +17,7 @@
             <v-card-media
               :src="event.imageUrl"
               height="400px"
+              contain
             ></v-card-media>
             <v-card-text>
               <v-textarea
@@ -78,6 +73,12 @@ export default {
       return this.$store.getters.user.events.findIndex(event => {
         return event.id === this.id && event.status === 'declined'
       }) >= 0
+    },
+    userIsCreator () {
+      if (!this.userIsAuthenticated) {
+        return false
+      }
+      return this.$store.getters.user.id === this.event.creatorId
     }
   }
 }

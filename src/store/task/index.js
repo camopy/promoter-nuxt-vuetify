@@ -13,6 +13,35 @@ export default {
     createTask (state, payload) {
       state.loadedTasks.push(payload)
     },
+    updateTask (state, payload) {
+      const loadedTasksFromEvent = state.loadedTasksFromEvent
+      loadedTasksFromEvent.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedTasksFromEvent[index].name = payload.name
+          loadedTasksFromEvent[index].eventName = payload.eventName
+          loadedTasksFromEvent[index].date = payload.date
+          loadedTasksFromEvent[index].finalDate = payload.finalDate
+          loadedTasksFromEvent[index].description = payload.description
+          loadedTasksFromEvent[index].imageUrl = payload.imageUrl
+          loadedTasksFromEvent[index].dateUpdated = payload.dateUpdated
+        }
+      })
+      state.loadedTasksFromEvent = loadedTasksFromEvent
+
+      const loadedTasks = state.loadedTasks
+      loadedTasks.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedTasks[index].name = payload.name
+          loadedTasks[index].eventName = payload.eventName
+          loadedTasks[index].date = payload.date
+          loadedTasks[index].finalDate = payload.finalDate
+          loadedTasks[index].description = payload.description
+          loadedTasks[index].imageUrl = payload.imageUrl
+          loadedTasks[index].dateUpdated = payload.dateUpdated
+        }
+      })
+      state.loadedTasks = loadedTasks
+    },
     setLoadedTasks (state, payload) {
       state.loadedTasks = payload
     },
@@ -46,7 +75,8 @@ export default {
         status: 'waiting'
       }
       let key
-      db.collection('events/' + payload.eventId + '/tasks').add(task)
+      commit('setLoading', true)
+      return db.collection('events/' + payload.eventId + '/tasks').add(task)
         .then(function (docRef) {
           key = docRef.id
           console.log('Task added with ID: ', key)
@@ -76,21 +106,86 @@ export default {
           })
           .then(function () {
             console.log('Task successfully updated with imageUrl!')
+            commit('setLoading', false)
             commit('createTask', {
               ...task,
               id: key,
+              eventName: payload.eventName,
               imageUrl: url
             })
           })
           .catch(function (error) {
+            commit('setLoading', false)
             // The document probably doesn't exist.
             console.error('Error updating task: ', error)
+            return error
           })
         })
         .catch(function (error) {
           if (error.message !== 'No image') {
             console.error('Error adding task: ', error)
           }
+          commit('setLoading', false)
+          return error
+        })
+    },
+    updateTask ({commit, getters}, payload) {
+      const updatedTask = {
+        name: payload.name,
+        date: payload.date,
+        finalDate: payload.finalDate,
+        description: payload.description,
+        dateUpdated: moment().toISOString(),
+        imageUrl: payload.imageUrl
+      }
+      commit('setLoading', true)
+      return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).update(updatedTask)
+        .then(function (docRef) {
+          if (!payload.image) {
+            commit('updateTask', {
+              ...updatedTask,
+              eventName: payload.eventName,
+              id: payload.id
+            })
+            console.log('Task updated!')
+            return Promise.reject(new Error('No image'))
+          } else {
+            const filename = payload.image.name
+            const ext = filename.slice(filename.lastIndexOf('.'))
+            return firebase.storage().ref('events/' + payload.eventId + '/tasks/' + payload.id + '/' + payload.id + '.' + ext).put(payload.image)
+          }
+        })
+        .then(fileData => {
+          let imagePath = fileData.metadata.fullPath
+          return firebase.storage().ref().child(imagePath).getDownloadURL()
+        })
+        .then(url => {
+          return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).update({
+            imageUrl: url
+          })
+          .then(function () {
+            console.log('Task successfully updated with imageUrl!')
+            commit('setLoading', false)
+            commit('updateTask', {
+              ...updatedTask,
+              id: payload.id,
+              eventName: payload.eventName,
+              imageUrl: url
+            })
+          })
+          .catch(function (error) {
+            commit('setLoading', false)
+            // The document probably doesn't exist.
+            console.error('Error updating task: ', error)
+            return error
+          })
+        })
+        .catch(function (error) {
+          if (error.message !== 'No image') {
+            console.error('Error updating task: ', error)
+          }
+          commit('setLoading', false)
+          return error
         })
     },
     loadTasksFromEvent ({commit}, payload) {
@@ -107,7 +202,8 @@ export default {
               finalDate: doc.data().finalDate,
               status: doc.data().status,
               imageUrl: doc.data().imageUrl,
-              eventName: payload.name
+              eventName: payload.name,
+              eventId: payload.id
             })
           })
           commit('setLoadedTasksFromEvent', tasks)
