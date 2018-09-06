@@ -215,16 +215,24 @@ export default {
         commit('setLoading', false)
       })
     },
-    releaseTask ({commit}, payload) {
+    releaseTask ({commit, getters}, payload) {
       commit('setLoading', true)
-      db.collection('events').doc(payload.eventId).collection('promoters').where('status', '==', 'promoting').get()
+      const user = getters.user
+      db.collection('promoters').where('eventId', '==', payload.eventId)
+        .where('status', '==', 'promoting').get()
         .then((querySnapshot) => {
           const batch = db.batch()
           querySnapshot.forEach((promoter) => {
-            let taskDoc = db.collection('users/' + promoter.id + '/events/' + payload.eventId + '/taskReports').doc(payload.task.id)
-            batch.set(taskDoc, {
+            let taskReportDoc = db.collection('taskReports').doc(promoter.id + '_' + payload.task.id)
+            batch.set(taskReportDoc, {
               ...payload.task,
-              status: 'notstarted'})
+              taskId: payload.task.id,
+              promoterId: promoter.data().userId,
+              promoterName: promoter.data().userName,
+              eventId: payload.eventId,
+              crewId: user.id,
+              status: 'notstarted'
+            })
           })
           batch.commit()
             .then(() => {
@@ -236,14 +244,14 @@ export default {
             console.error('Error releasing task: ', error)
           })
         })
-      .catch(function (error) {
-        console.error('Error fetching events from user: ', error)
-        commit('setLoading', false)
-      })
+        .catch(function (error) {
+          console.error('Error fetching events from user: ', error)
+          commit('setLoading', false)
+        })
     },
     updateTaskReport ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('users/' + payload.promoterId + '/events/' + payload.eventId + '/taskReports/').doc(payload.id)
+      return db.collection('taskReports').doc(payload.id)
         .update({
           status: payload.status
         })
@@ -260,19 +268,14 @@ export default {
     loadTaskReportsFromEvent ({commit, getters}, payload) {
       commit('setLoading', true)
       const user = getters.user
-      db.collection('users/' + user.id + '/events/' + payload.id + '/taskReports').get()
+      db.collection('taskReports').where('promoterId', '==', user.id)
+        .where('eventId', '==', payload.id).get()
         .then((querySnapshot) => {
           const taskReports = []
           querySnapshot.forEach((report) => {
             taskReports.push({
               id: report.id,
-              name: report.data().name,
-              description: report.data().description,
-              date: report.data().date,
-              finalDate: report.data().finalDate,
-              status: report.data().status,
-              imageUrl: report.data().imageUrl,
-              eventName: payload.name
+              ...report.data()
             })
           })
           commit('setLoadedTaskReportsFromEvent', taskReports)

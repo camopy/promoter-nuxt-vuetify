@@ -1,14 +1,6 @@
 <template>
   <v-container fluid>
-    <v-layout row wrap v-if="loading">
-      <v-flex xs12 class="text-xs-center">
-        <v-progress-circular
-          indeterminate
-          color="primary"
-        ></v-progress-circular>
-      </v-flex>
-    </v-layout>
-    <v-slide-y-transition mode="out-in" v-else>
+    <v-slide-y-transition mode="out-in">
       <v-layout row wrap v-if="report">
         <v-flex xs12>
           <v-card>
