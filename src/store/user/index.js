@@ -8,12 +8,12 @@ export default {
   },
   mutations: {
     applyUserForEvent (state, payload) {
-      const index = state.user.events.findIndex(event => event.id === payload.id)
+      const index = state.user.events.findIndex(event => event.id === payload.eventId)
       if (index >= 0) {
         state.user.events[index].status = 'applying'
         return
       }
-      state.user.events.push(payload)
+      state.user.events.push({id: payload.eventId, name: payload.eventName, status: 'applying', imageUrl: payload.eventImageUrl})
     },
     unapplyUserFromEvent (state, payload) {
       const events = state.user.events
@@ -37,23 +37,26 @@ export default {
       commit('setLoading', true)
       const user = getters.user
 
-      let eventDoc = db.collection('users/' + user.id + '/events').doc(payload.id)
-      let userDoc = db.collection('events/' + payload.id + '/promoters').doc(user.id)
+      const promoter = {
+        userId: user.id,
+        userName: user.name,
+        eventId: payload.id,
+        eventName: payload.name,
+        eventImageUrl: payload.imageUrl,
+        applyDate: moment().toISOString(),
+        status: 'applying'
+      }
 
-      var batch = db.batch()
-      const applyDate = moment().toISOString()
-      batch.set(eventDoc, {status: 'applying', applyDate: applyDate, name: payload.name})
-      batch.set(userDoc, {status: 'applying', applyDate: applyDate, name: user.name, facebook: user.facebook, instagram: user.instagram})
-      batch.commit()
-        .then(() => {
+      db.collection('promoters').doc(promoter.userId + '_' + promoter.eventId).set(promoter)
+        .then(function (docRef) {
           commit('setLoading', false)
-          commit('applyUserForEvent', {id: payload.id, status: 'applying'})
+          commit('applyUserForEvent', promoter)
           console.log('User applied to event.')
         })
-      .catch(error => {
-        commit('setLoading', false)
-        console.error('Error applying user to event: ', error)
-      })
+        .catch(error => {
+          commit('setLoading', false)
+          console.error('Error applying user to event: ', error)
+        })
     },
     unapplyUserFromEvent ({commit, getters}, payload) {
       commit('setLoading', true)
@@ -61,45 +64,33 @@ export default {
       if (!user.events) {
         return false
       } else {
-        let eventDoc = db.collection('users/' + user.id + '/events').doc(payload)
-        let userDoc = db.collection('events/' + payload + '/promoters').doc(user.id)
-
-        var batch = db.batch()
-        batch.delete(userDoc)
-        batch.delete(eventDoc)
-        batch.commit()
+        db.collection('promoters').doc(user.id + '_' + payload).delete()
           .then(() => {
             commit('setLoading', false)
             commit('unapplyUserFromEvent', payload)
             console.log('User removed from event.')
           })
-        .catch(error => {
-          commit('setLoading', false)
-          console.error('Error removing user from event: ', error)
-        })
+          .catch(error => {
+            commit('setLoading', false)
+            console.error('Error removing user from event: ', error)
+          })
       }
     },
     updateUserStatusFromEvent ({commit, getters}, payload) {
       commit('setLoading', true)
       const user = getters.user
 
-      let eventDoc = db.collection('users/' + user.id + '/events').doc(payload.id)
-      let userDoc = db.collection('events/' + payload.id + '/promoters').doc(user.id)
-
-      var batch = db.batch()
-      const updateDate = moment().toISOString()
-      batch.update(eventDoc, {status: payload.status, updateDate: updateDate})
-      batch.update(userDoc, {status: payload.status, updateDate: updateDate})
-      batch.commit()
+      db.collection('promoters').doc(user.id + '_' + payload.id)
+        .update({status: payload.status, updateDate: moment().toISOString()})
         .then(() => {
           commit('setLoading', false)
           commit('updateUserStatusFromEvent', {id: payload.id, status: payload.status})
           console.log('User status updated.')
         })
-      .catch(error => {
-        commit('setLoading', false)
-        console.error('Error updating user status: ', error)
-      })
+        .catch(error => {
+          commit('setLoading', false)
+          console.error('Error updating user status: ', error)
+        })
     },
     signUserUp ({commit}, payload) {
       commit('setLoading', true)
@@ -184,49 +175,50 @@ export default {
         })
         .then(updatedUser => {
           if (updatedUser.accountType === 'promoter') {
-            db.collection('users/' + updatedUser.id + '/events').get()
+            db.collection('promoters').where('userId', '==', updatedUser.id).get()
               .then((querySnapshot) => {
                 let events = []
                 let tasks = []
                 var promises = []
-                querySnapshot.forEach((event) => {
-                  const taskReport = {}
-                  events.push({
-                    id: event.id,
-                    name: event.data().name,
-                    status: event.data().status,
-                    applyDate: event.data().applyDate,
-                    updateDate: event.data().updateDate
-                  })
-                  taskReport.eventId = event.id
-                  taskReport.eventName = event.data().name
-                  taskReport.promoterId = updatedUser.id
-                  taskReport.promoterName = updatedUser.name
-                  taskReport.promoterFacebook = updatedUser.facebook
-                  taskReport.promoterInstagram = updatedUser.instagram
-                  if (event.data().status === 'promoting') {
-                    const promise = db.collection('users/' + updatedUser.id + '/events/' + event.id + '/taskReports')
-                      .where('status', '==', 'notstarted').get()
-                      .then(querySnapshot => {
-                        querySnapshot.forEach((doc) => {
-                          tasks.push({
-                            ...taskReport,
-                            id: doc.id,
-                            name: doc.data().name,
-                            status: doc.data().status,
-                            description: doc.data().description,
-                            date: doc.data().date,
-                            finalDate: doc.data().finalDate,
-                            imageUrl: doc.data().imageUrl,
-                            eventId: doc.ref.parent.parent.id
+                querySnapshot.forEach((promoter) => {
+                  if (promoter.data().status !== 'left' && promoter.data().status !== 'declined') {
+                    const taskReport = {}
+                    events.push({
+                      id: promoter.data().eventId,
+                      name: promoter.data().eventName,
+                      imageUrl: promoter.data().eventImageUrl,
+                      status: promoter.data().status,
+                      applyDate: promoter.data().applyDate,
+                      updateDate: promoter.data().updateDate
+                    })
+                    taskReport.eventId = promoter.data().eventId
+                    taskReport.eventName = promoter.data().eventName
+                    taskReport.promoterId = promoter.data().userId
+                    taskReport.promoterName = promoter.data().userName
+                    if (promoter.data().status === 'promoting') {
+                      const promise = db.collection('users/' + updatedUser.id + '/events/' + promoter.data().eventId + '/taskReports')
+                        .where('status', '==', 'notstarted').get()
+                        .then(querySnapshot => {
+                          querySnapshot.forEach((doc) => {
+                            tasks.push({
+                              ...taskReport,
+                              id: doc.id,
+                              name: doc.data().name,
+                              status: doc.data().status,
+                              description: doc.data().description,
+                              date: doc.data().date,
+                              finalDate: doc.data().finalDate,
+                              imageUrl: doc.data().imageUrl,
+                              eventId: doc.ref.parent.parent.id
+                            })
                           })
                         })
-                      })
-                      .catch(function (error) {
-                        // console.error('Error fetching tasks: ', error)
-                        return Promise.reject(error)
-                      })
-                    promises.push(promise)
+                        .catch(function (error) {
+                          // console.error('Error fetching tasks: ', error)
+                          return Promise.reject(error)
+                        })
+                      promises.push(promise)
+                    }
                   }
                 })
                 Promise.all(promises).then(() => {
@@ -272,6 +264,7 @@ export default {
                     taskReport.eventId = event.id
                     taskReport.eventName = event.data().name
                     const promoterPromise = event.ref.collection('promoters').where('status', '==', 'promoting').get()
+                    // const promoterPromise = db.collection('promoters').where('eventId', '==', event.id).get()
                       .then(querySnapshot => {
                         const taskPromises = []
                         querySnapshot.forEach(promoter => {

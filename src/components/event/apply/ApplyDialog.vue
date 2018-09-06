@@ -70,7 +70,7 @@ export default {
       } else if (this.userIsPromoting) {
         this.$store.dispatch('updateUserStatusFromEvent', {id: this.event.id, status: 'left'})
       } else {
-        this.$store.dispatch('applyUserForEvent', {id: this.event.id, name: this.event.name})
+        this.$store.dispatch('applyUserForEvent', {id: this.event.id, name: this.event.name, imageUrl: this.event.imageUrl})
       }
       this.applyDialog = false
     }
