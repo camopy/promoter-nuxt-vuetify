@@ -17,12 +17,18 @@
               <v-btn
                 class="red--text darken-1"
                 flat
+                :disabled="loading"
                 @click="reportDialog = false">Cancelar
               </v-btn>
               <v-btn
                 class="green--text darken-1"
                 flat
+                :disabled="loading"
+                :loading="loading"
                 @click="onAgree">Confirmar
+                <span slot="loader" class="custom-loader">
+                  <v-icon light>cached</v-icon>
+                </span>
               </v-btn>
             </v-card-actions>
           </v-flex>
@@ -41,6 +47,11 @@ export default {
   data () {
     return {
       reportDialog: false
+    }
+  },
+  computed: {
+    loading () {
+      return this.$store.getters.loading
     }
   },
   methods: {
@@ -63,8 +74,49 @@ export default {
           break
       }
       this.$store.dispatch('updateTaskReport', this.report)
-      this.reportDialog = false
+        .then(() => {
+          this.reportDialog = false
+        })
     }
   }
 }
 </script>
+
+<style>
+  .custom-loader {
+    animation: loader 1s infinite;
+    display: flex;
+  }
+  @-moz-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-o-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

@@ -49,15 +49,16 @@ export default {
     },
     loadPromotersFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('events').doc(payload.id).collection('promoters').get()
+      db.collection('promoters').where('eventId', '==', payload.id).get()
         .then((querySnapshot) => {
           const promoters = []
           querySnapshot.forEach((doc) => {
             promoters.push({
-              id: doc.id,
-              name: doc.data().name,
+              id: doc.data().userId,
+              name: doc.data().userName,
               status: doc.data().status,
-              applyDate: doc.data().applyDate
+              applyDate: doc.data().applyDate,
+              updateDate: doc.data().updateDate
             })
           })
           commit('setLoadedPromotersFromEvent', promoters)
@@ -70,23 +71,18 @@ export default {
     },
     updatePromoterStatusFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      let eventDoc = db.collection('users/' + payload.promoterId + '/events').doc(payload.eventId)
-      let userDoc = db.collection('events/' + payload.eventId + '/promoters').doc(payload.promoterId)
 
-      var batch = db.batch()
-      const updateDate = moment().toISOString()
-      batch.update(eventDoc, {status: payload.status, updateDate: updateDate})
-      batch.update(userDoc, {status: payload.status, updateDate: updateDate})
-      batch.commit()
+      db.collection('promoters').doc(payload.promoterId + '_' + payload.eventId)
+        .update({status: payload.status, updateDate: moment().toISOString()})
         .then(() => {
           commit('setLoading', false)
           commit('setPromoterStatusFromEvent', {id: payload.promoterId, status: payload.status})
           console.log('User accepted to event.')
         })
-      .catch(error => {
-        commit('setLoading', false)
-        console.error('Error accepting user to event: ', error)
-      })
+        .catch(error => {
+          commit('setLoading', false)
+          console.error('Error accepting user to event: ', error)
+        })
     }
   },
   getters: {
