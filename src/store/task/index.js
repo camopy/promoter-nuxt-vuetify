@@ -42,6 +42,13 @@ export default {
       })
       state.loadedTasks = loadedTasks
     },
+    deleteTask (state, payload) {
+      const loadedTasksFromEvent = state.loadedTasksFromEvent
+      loadedTasksFromEvent.splice(loadedTasksFromEvent.findIndex(task => task.id === payload.id), 1)
+
+      const loadedTasks = state.loadedTasks
+      loadedTasks.splice(loadedTasks.findIndex(task => task.id === payload.id), 1)
+    },
     setLoadedTasks (state, payload) {
       state.loadedTasks = payload
     },
@@ -72,6 +79,7 @@ export default {
         creatorId: getters.user.id,
         dateCreated: moment().toISOString(),
         imageUrl: '',
+        imagePath: '',
         status: 'waiting'
       }
       let key
@@ -93,16 +101,18 @@ export default {
           } else {
             const filename = payload.image.name
             const ext = filename.slice(filename.lastIndexOf('.'))
-            return firebase.storage().ref('events/' + payload.eventId + '/tasks/' + key + '/' + key + '.' + ext).put(payload.image)
+            return firebase.storage().ref('events/' + payload.eventId + '/tasks/' + key + '/' + key + ext).put(payload.image)
           }
         })
         .then(fileData => {
           let imagePath = fileData.metadata.fullPath
+          payload.imagePath = imagePath
           return firebase.storage().ref().child(imagePath).getDownloadURL()
         })
         .then(url => {
           return db.collection('events/' + payload.eventId + '/tasks').doc(key).update({
-            imageUrl: url
+            imageUrl: url,
+            imagePath: payload.imagePath
           })
           .then(function () {
             console.log('Task successfully updated with imageUrl!')
@@ -111,7 +121,8 @@ export default {
               ...task,
               id: key,
               eventName: payload.eventName,
-              imageUrl: url
+              imageUrl: url,
+              imagePath: payload.imagePath
             })
           })
           .catch(function (error) {
@@ -136,7 +147,8 @@ export default {
         finalDate: payload.finalDate,
         description: payload.description,
         dateUpdated: moment().toISOString(),
-        imageUrl: payload.imageUrl
+        imageUrl: payload.imageUrl,
+        imagePath: payload.imagePath
       }
       commit('setLoading', true)
       return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).update(updatedTask)
@@ -152,16 +164,18 @@ export default {
           } else {
             const filename = payload.image.name
             const ext = filename.slice(filename.lastIndexOf('.'))
-            return firebase.storage().ref('events/' + payload.eventId + '/tasks/' + payload.id + '/' + payload.id + '.' + ext).put(payload.image)
+            return firebase.storage().ref('events/' + payload.eventId + '/tasks/' + payload.id + '/' + payload.id + ext).put(payload.image)
           }
         })
         .then(fileData => {
           let imagePath = fileData.metadata.fullPath
+          payload.imagePath = imagePath
           return firebase.storage().ref().child(imagePath).getDownloadURL()
         })
         .then(url => {
           return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).update({
-            imageUrl: url
+            imageUrl: url,
+            imagePath: payload.imagePath
           })
           .then(function () {
             console.log('Task successfully updated with imageUrl!')
@@ -170,7 +184,8 @@ export default {
               ...updatedTask,
               id: payload.id,
               eventName: payload.eventName,
-              imageUrl: url
+              imageUrl: url,
+              imagePath: payload.imagePath
             })
           })
           .catch(function (error) {
@@ -184,6 +199,50 @@ export default {
           if (error.message !== 'No image') {
             console.error('Error updating task: ', error)
           }
+          commit('setLoading', false)
+          return error
+        })
+    },
+    deleteTask ({commit, getters}, payload) {
+      const task = {
+        name: payload.name,
+        date: payload.date,
+        finalDate: payload.finalDate,
+        description: payload.description,
+        dateUpdated: moment().toISOString(),
+        imageUrl: payload.imageUrl,
+        imagePath: payload.imagePath
+      }
+      commit('setLoading', true)
+      return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).delete()
+        .then(function (docRef) {
+          if (!payload.imagePath) {
+            commit('setLoading', false)
+            commit('deleteTask', {
+              ...task,
+              id: payload.id
+            })
+            console.log('Task image successfully deleted!')
+          } else {
+            firebase.storage().ref(payload.imagePath).delete()
+            .then(function () {
+              console.log('Task image successfully deleted!')
+              commit('setLoading', false)
+              commit('deleteTask', {
+                ...task,
+                id: payload.id
+              })
+            })
+            .catch(function (error) {
+              commit('setLoading', false)
+              // The document probably doesn't exist.
+              console.error('Error deleting task image: ', error)
+              return error
+            })
+          }
+        })
+        .catch(function (error) {
+          console.error('Error deleting task: ', error)
           commit('setLoading', false)
           return error
         })

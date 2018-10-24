@@ -10,6 +10,7 @@
               </div>
               <v-spacer></v-spacer>
               <app-task-edit-dialog :task="task"></app-task-edit-dialog>
+              <app-task-delete-dialog :task="task"></app-task-delete-dialog>
             </v-card-title>
             <v-card-text>
               <div>{{formatDate(task.date)}}</div>
