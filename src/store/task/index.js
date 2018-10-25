@@ -281,26 +281,51 @@ export default {
         .where('status', '==', 'promoting').get()
         .then((querySnapshot) => {
           const batch = db.batch()
+          const promises = []
           querySnapshot.forEach((promoter) => {
             let taskReportDoc = db.collection('taskReports').doc(promoter.id + '_' + payload.task.id)
-            batch.set(taskReportDoc, {
-              ...payload.task,
-              taskId: payload.task.id,
-              promoterId: promoter.data().userId,
-              promoterName: promoter.data().userName,
-              eventId: payload.eventId,
-              crewId: user.id,
-              status: 'notstarted'
+            const taskReportPromise = taskReportDoc.get().then(function (taskReport) {
+              if (!taskReport.exists) {
+                batch.set(taskReportDoc, {
+                  ...payload.task,
+                  taskId: payload.task.id,
+                  promoterId: promoter.data().userId,
+                  promoterName: promoter.data().userName,
+                  eventId: payload.eventId,
+                  crewId: user.id,
+                  status: 'notstarted'
+                })
+              }
+            })
+            .catch(function (error) {
+              console.log('Error getting taskReport:', error)
+              return Promise.reject(error)
+            })
+            promises.push(taskReportPromise)
+          })
+
+          Promise.all(promises).then(response => {
+            batch.commit()
+            .then(() => {
+              db.collection('events/' + payload.eventId + '/tasks/').doc(payload.task.id)
+              .update({status: 'released'})
+              .then(() => {
+                commit('setLoading', false)
+                console.log('Task released.')
+              })
+              .catch(function (error) {
+                console.log('Error updating task status:', error)
+                commit('setLoading', false)
+              })
+            })
+            .catch(error => {
+              commit('setLoading', false)
+              console.error('Error releasing task: ', error)
             })
           })
-          batch.commit()
-            .then(() => {
-              commit('setLoading', false)
-              console.log('Task released.')
-            })
           .catch(error => {
             commit('setLoading', false)
-            console.error('Error releasing task: ', error)
+            console.error('Error fetching data: ', error)
           })
         })
         .catch(function (error) {

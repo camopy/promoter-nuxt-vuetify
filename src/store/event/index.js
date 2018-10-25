@@ -237,53 +237,77 @@ export default {
         dateUpdated: moment().toISOString()
       }
       commit('setLoading', true)
-      return db.collection('events/' + payload.id + '/tasks').get()
-        .then((querySnapshot) => {
-          const batch = db.batch()
-          querySnapshot.forEach((task) => {
-            batch.delete(task.ref)
-          })
+      const batch = db.batch()
+      const promises = []
 
-          let eventRef = db.collection('events').doc(payload.id)
-          batch.delete(eventRef)
+      const promoterPromise = db.collection('promoters').where('eventId', '==', payload.id).get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((promoter) => {
+          batch.delete(promoter.ref)
+        })
+        console.log('Batch delete promoter')
+      })
+      .catch(function (error) {
+        console.error('Error fetching promoters from event: ', error)
+        return Promise.reject(error)
+      })
+      promises.push(promoterPromise)
 
-          batch.commit()
-            .then(() => {
-              if (!payload.imagePath) {
+      const taskPromise = db.collection('events/' + payload.id + '/tasks').get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((task) => {
+          batch.delete(task.ref)
+        })
+        console.log('Batch delete task')
+
+        let eventRef = db.collection('events').doc(payload.id)
+        batch.delete(eventRef)
+        console.log('Batch delete event')
+      })
+      .catch(function (error) {
+        console.error('Error fetching tasks from event: ', error)
+        return Promise.reject(error)
+      })
+      promises.push(taskPromise)
+
+      Promise.all(promises).then(response => {
+        batch.commit()
+          .then(() => {
+            if (!payload.imagePath) {
+              commit('setLoading', false)
+              commit('deleteEvent', {
+                ...event,
+                id: payload.id
+              })
+              console.log('Event deleted.')
+            } else {
+              firebase.storage().ref(payload.imagePath).delete()
+              .then(function () {
+                console.log('Event deleted.')
+                console.log('Event image successfully deleted!')
                 commit('setLoading', false)
                 commit('deleteEvent', {
                   ...event,
                   id: payload.id
                 })
-                console.log('Event deleted.')
-              } else {
-                firebase.storage().ref(payload.imagePath).delete()
-                .then(function () {
-                  console.log('Event deleted.')
-                  console.log('Event image successfully deleted!')
-                  commit('setLoading', false)
-                  commit('deleteEvent', {
-                    ...event,
-                    id: payload.id
-                  })
-                })
-                .catch(function (error) {
-                  commit('setLoading', false)
-                  // The document probably doesn't exist.
-                  console.error('Error deleting event image: ', error)
-                  return error
-                })
-              }
-            })
-          .catch(error => {
-            commit('setLoading', false)
-            console.error('Error deleting event: ', error)
+              })
+              .catch(function (error) {
+                commit('setLoading', false)
+                // The document probably doesn't exist.
+                console.error('Error deleting event image: ', error)
+                return error
+              })
+            }
           })
-        })
-        .catch(function (error) {
-          console.error('Error fetching tasks from event: ', error)
+        .catch(error => {
           commit('setLoading', false)
+          console.error('Error deleting event: ', error)
         })
+      })
+      .catch(error => {
+        commit('setLoading', false)
+        console.error('Error fetching data: ', error)
+      })
     },
     toogleRecruitingFromEvent ({commit}, payload) {
       commit('setLoading', true)

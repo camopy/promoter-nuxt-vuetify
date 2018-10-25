@@ -195,7 +195,7 @@ export default {
               })
               .catch(function (error) {
                 console.log('Error getting events:', error)
-                commit('setLoading', false)
+                return Promise.reject(error)
               })
             promises.push(eventsPromise)
 
@@ -256,7 +256,7 @@ export default {
               })
               .catch(function (error) {
                 console.error('Error fetching events from user: ', error)
-                commit('setLoading', false)
+                return Promise.reject(error)
               })
             promises.push(eventPromise)
 
@@ -275,7 +275,7 @@ export default {
               })
               .catch(function (error) {
                 console.error('Error fetching task reports: ', error)
-                commit('setLoading', false)
+                return Promise.reject(error)
               })
             promises.push(taskReportPromise)
 
