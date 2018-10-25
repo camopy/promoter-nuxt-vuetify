@@ -1,28 +1,28 @@
 <template>
-  <v-dialog v-model="deleteTaskDialog" width="800px">
+  <v-dialog v-model="deleteEventDialog" width="800px">
     <v-btn fab accent slot="activator">
       <v-icon>delete</v-icon>
     </v-btn>
     <v-slide-y-transition mode="out-in">
-      <v-layout row wrap v-if="task">
+      <v-layout row wrap v-if="event">
         <v-flex xs12>
           <v-card>
             <v-card-title
               class="grey py-4 title"
             >
-              Deletar missão
+              Deletar evento
             </v-card-title>
             <v-layout row wrap>
               <v-flex xs12>
                 <v-card-text>
-                  Você tem certeza que deseja deletar essa missão?
+                  Você tem certeza que deseja deletar esse evento?
                 </v-card-text>
               </v-flex>
             </v-layout>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn flat :disabled="loading" color="primary" @click="onCancel">Cancelar</v-btn>
-              <v-btn flat :disabled="loading" :loading="loading" @click="onDeleteTask">
+              <v-btn flat :disabled="loading" :loading="loading" @click="onDeleteEvent">
                 Deletar
                 <span slot="loader" class="custom-loader">
                   <v-icon light>cached</v-icon>
@@ -41,7 +41,7 @@ import Date from '@/mixins/Date'
 
 export default {
   mixins: [Date],
-  props: ['task'],
+  props: ['event'],
   computed: {
     loading () {
       return this.$store.getters.loading
@@ -50,41 +50,39 @@ export default {
 
   data () {
     return {
-      deleteTaskDialog: false,
-      name: this.task.name,
-      date: this.task.date,
-      finalDate: this.task.finalDate,
-      dateMenu: false,
-      finalDateMenu: false,
-      description: this.task.description,
+      deleteEventDialog: false,
+      name: this.event.name,
+      state: this.event.state,
+      city: this.event.city,
+      date: this.event.date,
+      description: this.event.description,
+      gift: this.event.gift,
       image: null,
-      imageUrl: this.task.imageUrl,
-      event: {name: this.task.eventName, id: this.task.eventId}
+      imageUrl: this.event.imageUrl,
+      imagePath: this.event.imagePath
     }
   },
 
   methods: {
     onCancel () {
-      this.deleteTaskDialog = false
+      this.deleteEventDialog = false
     },
-    onDeleteTask () {
-      const taskData = {
-        id: this.task.id,
-        name: this.name,
+    onDeleteEvent () {
+      const eventData = {
+        id: this.event.id,
+        state: this.state,
+        city: this.city,
         date: this.date,
-        finalDate: this.finalDate,
         description: this.description,
-        image: this.image,
-        imageUrl: this.task.imageUrl,
-        imagePath: this.task.imagePath,
-        eventId: this.event.id,
-        eventName: this.event.name
+        imageUrl: this.event.imageUrl,
+        imagePath: this.event.imagePath,
+        image: this.image
       }
-      this.$store.dispatch('deleteTask', taskData)
+      this.$store.dispatch('deleteEvent', eventData)
       .then(response => {
-        this.deleteTaskDialog = false
+        this.deleteEventDialog = false
         this.image = null
-        this.$router.go(-2)
+        this.$router.go(-1)
       })
     }
   }

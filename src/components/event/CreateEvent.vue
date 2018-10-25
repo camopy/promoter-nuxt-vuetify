@@ -126,6 +126,8 @@ export default {
           this.image = null
           this.imageUrl = ''
           this.$refs.form.reset()
+          this.gift = ''
+          this.description = ''
         }
       }
     },

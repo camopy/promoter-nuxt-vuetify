@@ -45,6 +45,13 @@ export default {
       })
       state.loadedEvents = loadedEvents
     },
+    deleteEvent (state, payload) {
+      const loadedEvents = state.loadedEvents
+      loadedEvents.splice(loadedEvents.findIndex(event => event.id === payload.id), 1)
+
+      const loadedEventsFromUser = state.loadedEventsFromUser
+      loadedEventsFromUser.splice(loadedEventsFromUser.findIndex(event => event.id === payload.id), 1)
+    },
     toogleRecruitingFromEvent (state, payload) {
       const recruiting = !payload.recruiting
 
@@ -105,6 +112,7 @@ export default {
         creatorId: getters.user.id,
         dateCreated: moment().toISOString(),
         imageUrl: '',
+        imagePath: '',
         recruiting: false
       }
       let key
@@ -129,11 +137,13 @@ export default {
         })
         .then(fileData => {
           let imagePath = fileData.metadata.fullPath
+          payload.imagePath = imagePath
           return firebase.storage().ref().child(imagePath).getDownloadURL()
         })
         .then(url => {
           return db.collection('events').doc(key).update({
-            imageUrl: url
+            imageUrl: url,
+            imagePath: payload.imagePath
           })
           .then(function () {
             console.log('Event successfully updated with imageUrl!')
@@ -141,7 +151,8 @@ export default {
             commit('createEvent', {
               ...event,
               id: key,
-              imageUrl: url
+              imageUrl: url,
+              imagePath: payload.imagePath
             })
           })
           .catch(function (error) {
@@ -213,6 +224,65 @@ export default {
           }
           commit('setLoading', false)
           return response
+        })
+    },
+    deleteEvent ({commit, getters}, payload) {
+      const event = {
+        state: payload.state,
+        city: payload.city,
+        date: payload.date,
+        description: payload.description,
+        imageUrl: payload.imageUrl,
+        imagePath: payload.imagePath,
+        dateUpdated: moment().toISOString()
+      }
+      commit('setLoading', true)
+      return db.collection('events/' + payload.id + '/tasks').get()
+        .then((querySnapshot) => {
+          const batch = db.batch()
+          querySnapshot.forEach((task) => {
+            batch.delete(task.ref)
+          })
+
+          let eventRef = db.collection('events').doc(payload.id)
+          batch.delete(eventRef)
+
+          batch.commit()
+            .then(() => {
+              if (!payload.imagePath) {
+                commit('setLoading', false)
+                commit('deleteEvent', {
+                  ...event,
+                  id: payload.id
+                })
+                console.log('Event deleted.')
+              } else {
+                firebase.storage().ref(payload.imagePath).delete()
+                .then(function () {
+                  console.log('Event deleted.')
+                  console.log('Event image successfully deleted!')
+                  commit('setLoading', false)
+                  commit('deleteEvent', {
+                    ...event,
+                    id: payload.id
+                  })
+                })
+                .catch(function (error) {
+                  commit('setLoading', false)
+                  // The document probably doesn't exist.
+                  console.error('Error deleting event image: ', error)
+                  return error
+                })
+              }
+            })
+          .catch(error => {
+            commit('setLoading', false)
+            console.error('Error deleting event: ', error)
+          })
+        })
+        .catch(function (error) {
+          console.error('Error fetching tasks from event: ', error)
+          commit('setLoading', false)
         })
     },
     toogleRecruitingFromEvent ({commit}, payload) {

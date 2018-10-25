@@ -10,6 +10,7 @@
               </div>
               <v-spacer></v-spacer>
               <app-event-edit-dialog v-if="userIsCreator" :event="event"></app-event-edit-dialog>
+              <app-event-delete-dialog v-if="userIsCreator" :event="event"></app-event-delete-dialog>
             </v-card-title>
             <v-card-text>
               <div>{{formatDate(event.date)}} - {{event.city}}, {{event.state}}</div>
