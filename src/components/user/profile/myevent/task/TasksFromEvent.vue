@@ -25,7 +25,7 @@
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Ver Missão
                     </v-btn>
-                    <v-btn flat v-if="task.status === 'waiting'" @click="onReleaseTask(task)">
+                    <v-btn flat @click="onReleaseTask(task)">
                       Liberar Missão
                     </v-btn>
                   </v-card-actions>

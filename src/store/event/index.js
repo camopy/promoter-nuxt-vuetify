@@ -45,6 +45,13 @@ export default {
       })
       state.loadedEvents = loadedEvents
     },
+    deleteEvent (state, payload) {
+      const loadedEvents = state.loadedEvents
+      loadedEvents.splice(loadedEvents.findIndex(event => event.id === payload.id), 1)
+
+      const loadedEventsFromUser = state.loadedEventsFromUser
+      loadedEventsFromUser.splice(loadedEventsFromUser.findIndex(event => event.id === payload.id), 1)
+    },
     toogleRecruitingFromEvent (state, payload) {
       const recruiting = !payload.recruiting
 
@@ -60,6 +67,23 @@ export default {
       loadedEvents.forEach((element, index) => {
         if (element.id === payload.id) {
           loadedEvents[index].recruiting = recruiting
+        }
+      })
+      state.loadedEvents = loadedEvents
+    },
+    updateEventStatus (state, payload) {
+      const loadedEventsFromUser = state.loadedEventsFromUser
+      loadedEventsFromUser.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEventsFromUser[index].status = payload.status
+        }
+      })
+      state.loadedEventsFromUser = loadedEventsFromUser
+
+      const loadedEvents = state.loadedEvents
+      loadedEvents.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEvents[index].status = payload.status
         }
       })
       state.loadedEvents = loadedEvents
@@ -83,7 +107,8 @@ export default {
               imageUrl: doc.data().imageUrl,
               creatorId: doc.data().creatorId,
               dateCreated: doc.data().dateCreated,
-              recruiting: doc.data().recruiting
+              recruiting: doc.data().recruiting,
+              status: doc.data().status
             })
           })
           commit('setLoadedEvents', events)
@@ -105,6 +130,7 @@ export default {
         creatorId: getters.user.id,
         dateCreated: moment().toISOString(),
         imageUrl: '',
+        imagePath: '',
         recruiting: false
       }
       let key
@@ -129,11 +155,13 @@ export default {
         })
         .then(fileData => {
           let imagePath = fileData.metadata.fullPath
+          payload.imagePath = imagePath
           return firebase.storage().ref().child(imagePath).getDownloadURL()
         })
         .then(url => {
           return db.collection('events').doc(key).update({
-            imageUrl: url
+            imageUrl: url,
+            imagePath: payload.imagePath
           })
           .then(function () {
             console.log('Event successfully updated with imageUrl!')
@@ -141,7 +169,8 @@ export default {
             commit('createEvent', {
               ...event,
               id: key,
-              imageUrl: url
+              imageUrl: url,
+              imagePath: payload.imagePath
             })
           })
           .catch(function (error) {
@@ -215,6 +244,95 @@ export default {
           return response
         })
     },
+    deleteEvent ({commit, getters}, payload) {
+      const event = {
+        state: payload.state,
+        city: payload.city,
+        date: payload.date,
+        description: payload.description,
+        imageUrl: payload.imageUrl,
+        imagePath: payload.imagePath,
+        dateUpdated: moment().toISOString(),
+        status: payload.status
+      }
+
+      if (event.status !== 'waiting') {
+        return
+      }
+
+      commit('setLoading', true)
+      const batch = db.batch()
+      const promises = []
+
+      const promoterPromise = db.collection('promoters').where('eventId', '==', payload.id).get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((promoter) => {
+          batch.delete(promoter.ref)
+        })
+        console.log('Batch delete promoter')
+      })
+      .catch(function (error) {
+        console.error('Error fetching promoters from event: ', error)
+        return Promise.reject(error)
+      })
+      promises.push(promoterPromise)
+
+      const taskPromise = db.collection('events/' + payload.id + '/tasks').get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((task) => {
+          batch.delete(task.ref)
+        })
+        console.log('Batch delete task')
+
+        let eventRef = db.collection('events').doc(payload.id)
+        batch.delete(eventRef)
+        console.log('Batch delete event')
+      })
+      .catch(function (error) {
+        console.error('Error fetching tasks from event: ', error)
+        return Promise.reject(error)
+      })
+      promises.push(taskPromise)
+
+      Promise.all(promises).then(response => {
+        batch.commit()
+          .then(() => {
+            if (!payload.imagePath) {
+              commit('setLoading', false)
+              commit('deleteEvent', {
+                ...event,
+                id: payload.id
+              })
+              console.log('Event deleted.')
+            } else {
+              firebase.storage().ref(payload.imagePath).delete()
+              .then(function () {
+                console.log('Event deleted.')
+                console.log('Event image successfully deleted!')
+                commit('setLoading', false)
+                commit('deleteEvent', {
+                  ...event,
+                  id: payload.id
+                })
+              })
+              .catch(function (error) {
+                commit('setLoading', false)
+                // The document probably doesn't exist.
+                console.error('Error deleting event image: ', error)
+                return error
+              })
+            }
+          })
+        .catch(error => {
+          commit('setLoading', false)
+          console.error('Error deleting event: ', error)
+        })
+      })
+      .catch(error => {
+        commit('setLoading', false)
+        console.error('Error fetching data: ', error)
+      })
+    },
     toogleRecruitingFromEvent ({commit}, payload) {
       commit('setLoading', true)
       db.collection('events').doc(payload.id).update({recruiting: !payload.recruiting})
@@ -226,6 +344,22 @@ export default {
         console.error('Error updating recruiting status from event : ', error)
         commit('setLoading', false)
       })
+    },
+    updateEventStatus ({commit, getters}, payload) {
+      commit('setLoading', true)
+      const event = getters.loadedEvent(payload.id)
+      if (event.status !== payload.status) {
+        db.collection('events').doc(payload.id).update({status: payload.status})
+          .then(() => {
+            console.log('Event status updated!')
+            commit('updateEventStatus', payload)
+            commit('setLoading', false)
+          })
+        .catch(function (error) {
+          console.error('Error updating event status : ', error)
+          commit('setLoading', false)
+        })
+      }
     }
   },
   getters: {

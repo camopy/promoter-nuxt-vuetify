@@ -10,6 +10,7 @@
               </div>
               <v-spacer></v-spacer>
               <app-event-edit-dialog v-if="userIsCreator" :event="event"></app-event-edit-dialog>
+              <app-event-delete-dialog v-if="userIsCreator && eventIsWaiting" :event="event"></app-event-delete-dialog>
             </v-card-title>
             <v-card-text>
               <div>{{formatDate(event.date)}} - {{event.city}}, {{event.state}}</div>
@@ -58,6 +59,9 @@ export default {
     },
     eventIsRecruiting () {
       return this.event.recruiting
+    },
+    eventIsWaiting () {
+      return this.event.status === 'waiting'
     },
     userIsApplying () {
       return this.$store.getters.user.events.findIndex(event => {
