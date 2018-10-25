@@ -59,7 +59,8 @@ export default {
       gift: this.event.gift,
       image: null,
       imageUrl: this.event.imageUrl,
-      imagePath: this.event.imagePath
+      imagePath: this.event.imagePath,
+      status: this.event.status
     }
   },
 
@@ -76,7 +77,8 @@ export default {
         description: this.description,
         imageUrl: this.event.imageUrl,
         imagePath: this.event.imagePath,
-        image: this.image
+        image: this.image,
+        status: this.status
       }
       this.$store.dispatch('deleteEvent', eventData)
       .then(response => {

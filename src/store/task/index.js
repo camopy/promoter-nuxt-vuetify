@@ -274,7 +274,7 @@ export default {
         commit('setLoading', false)
       })
     },
-    releaseTask ({commit, getters}, payload) {
+    releaseTask ({commit, getters, dispatch}, payload) {
       commit('setLoading', true)
       const user = getters.user
       db.collection('promoters').where('eventId', '==', payload.eventId)
@@ -310,6 +310,7 @@ export default {
               db.collection('events/' + payload.eventId + '/tasks/').doc(payload.task.id)
               .update({status: 'released'})
               .then(() => {
+                dispatch('updateEventStatus', {id: payload.eventId, status: 'promoting'})
                 commit('setLoading', false)
                 console.log('Task released.')
               })

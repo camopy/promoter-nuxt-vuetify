@@ -70,6 +70,23 @@ export default {
         }
       })
       state.loadedEvents = loadedEvents
+    },
+    updateEventStatus (state, payload) {
+      const loadedEventsFromUser = state.loadedEventsFromUser
+      loadedEventsFromUser.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEventsFromUser[index].status = payload.status
+        }
+      })
+      state.loadedEventsFromUser = loadedEventsFromUser
+
+      const loadedEvents = state.loadedEvents
+      loadedEvents.forEach((element, index) => {
+        if (element.id === payload.id) {
+          loadedEvents[index].status = payload.status
+        }
+      })
+      state.loadedEvents = loadedEvents
     }
   },
   actions: {
@@ -90,7 +107,8 @@ export default {
               imageUrl: doc.data().imageUrl,
               creatorId: doc.data().creatorId,
               dateCreated: doc.data().dateCreated,
-              recruiting: doc.data().recruiting
+              recruiting: doc.data().recruiting,
+              status: doc.data().status
             })
           })
           commit('setLoadedEvents', events)
@@ -234,8 +252,14 @@ export default {
         description: payload.description,
         imageUrl: payload.imageUrl,
         imagePath: payload.imagePath,
-        dateUpdated: moment().toISOString()
+        dateUpdated: moment().toISOString(),
+        status: payload.status
       }
+
+      if (event.status !== 'waiting') {
+        return
+      }
+
       commit('setLoading', true)
       const batch = db.batch()
       const promises = []
@@ -320,6 +344,22 @@ export default {
         console.error('Error updating recruiting status from event : ', error)
         commit('setLoading', false)
       })
+    },
+    updateEventStatus ({commit, getters}, payload) {
+      commit('setLoading', true)
+      const event = getters.loadedEvent(payload.id)
+      if (event.status !== payload.status) {
+        db.collection('events').doc(payload.id).update({status: payload.status})
+          .then(() => {
+            console.log('Event status updated!')
+            commit('updateEventStatus', payload)
+            commit('setLoading', false)
+          })
+        .catch(function (error) {
+          console.error('Error updating event status : ', error)
+          commit('setLoading', false)
+        })
+      }
     }
   },
   getters: {
