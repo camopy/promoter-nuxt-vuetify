@@ -45,9 +45,6 @@ export default {
     deleteTask (state, payload) {
       const loadedTasksFromEvent = state.loadedTasksFromEvent
       loadedTasksFromEvent.splice(loadedTasksFromEvent.findIndex(task => task.id === payload.id), 1)
-
-      const loadedTasks = state.loadedTasks
-      loadedTasks.splice(loadedTasks.findIndex(task => task.id === payload.id), 1)
     },
     setLoadedTasks (state, payload) {
       state.loadedTasks = payload
@@ -83,7 +80,7 @@ export default {
         status: 'waiting'
       }
       let key
-      commit('setLoading', true)
+      commit('setCreating', true)
       return db.collection('events/' + payload.eventId + '/tasks').add(task)
         .then(function (docRef) {
           key = docRef.id
@@ -94,6 +91,7 @@ export default {
           if (!payload.image) {
             commit('createTask', {
               ...task,
+              eventId: payload.eventId,
               eventName: payload.eventName,
               id: key
             })
@@ -116,17 +114,18 @@ export default {
           })
           .then(function () {
             console.log('Task successfully updated with imageUrl!')
-            commit('setLoading', false)
+            commit('setCreating', false)
             commit('createTask', {
               ...task,
               id: key,
+              eventId: payload.eventId,
               eventName: payload.eventName,
               imageUrl: url,
               imagePath: payload.imagePath
             })
           })
           .catch(function (error) {
-            commit('setLoading', false)
+            commit('setCreating', false)
             // The document probably doesn't exist.
             console.error('Error updating task: ', error)
             return error
@@ -136,7 +135,7 @@ export default {
           if (error.message !== 'No image') {
             console.error('Error adding task: ', error)
           }
-          commit('setLoading', false)
+          commit('setCreating', false)
           return error
         })
     },
@@ -150,7 +149,7 @@ export default {
         imageUrl: payload.imageUrl,
         imagePath: payload.imagePath
       }
-      commit('setLoading', true)
+      commit('setUpdating', true)
       return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).update(updatedTask)
         .then(function (docRef) {
           if (!payload.image) {
@@ -179,7 +178,7 @@ export default {
           })
           .then(function () {
             console.log('Task successfully updated with imageUrl!')
-            commit('setLoading', false)
+            commit('setUpdating', false)
             commit('updateTask', {
               ...updatedTask,
               id: payload.id,
@@ -189,7 +188,7 @@ export default {
             })
           })
           .catch(function (error) {
-            commit('setLoading', false)
+            commit('setUpdating', false)
             // The document probably doesn't exist.
             console.error('Error updating task: ', error)
             return error
@@ -199,7 +198,7 @@ export default {
           if (error.message !== 'No image') {
             console.error('Error updating task: ', error)
           }
-          commit('setLoading', false)
+          commit('setUpdating', false)
           return error
         })
     },
@@ -213,28 +212,29 @@ export default {
         imageUrl: payload.imageUrl,
         imagePath: payload.imagePath
       }
-      commit('setLoading', true)
+      commit('setDeleting', true)
       return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).delete()
         .then(function (docRef) {
           if (!payload.imagePath) {
-            commit('setLoading', false)
+            commit('setDeleting', false)
             commit('deleteTask', {
               ...task,
               id: payload.id
             })
-            console.log('Task image successfully deleted!')
+            console.log('Task successfully deleted!')
           } else {
-            firebase.storage().ref(payload.imagePath).delete()
+            return firebase.storage().ref(payload.imagePath).delete()
             .then(function () {
+              console.log('Task successfully deleted!')
               console.log('Task image successfully deleted!')
-              commit('setLoading', false)
+              commit('setDeleting', false)
               commit('deleteTask', {
                 ...task,
                 id: payload.id
               })
             })
             .catch(function (error) {
-              commit('setLoading', false)
+              commit('setDeleting', false)
               // The document probably doesn't exist.
               console.error('Error deleting task image: ', error)
               return error
@@ -243,7 +243,7 @@ export default {
         })
         .catch(function (error) {
           console.error('Error deleting task: ', error)
-          commit('setLoading', false)
+          commit('setDeleting', false)
           return error
         })
     },
@@ -261,6 +261,7 @@ export default {
               finalDate: doc.data().finalDate,
               status: doc.data().status,
               imageUrl: doc.data().imageUrl,
+              imagePath: doc.data().imagePath,
               eventName: payload.name,
               eventId: payload.id
             })

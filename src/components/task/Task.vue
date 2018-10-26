@@ -43,9 +43,6 @@ export default {
     task () {
       return this.$store.getters.loadedTask(this.id)
     },
-    loading () {
-      return this.$store.getters.loading
-    },
     userIsAuthenticated () {
       return this.$store.getters.user !== null && this.$store.getters.user !== undefined
     },

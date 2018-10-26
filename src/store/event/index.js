@@ -105,6 +105,7 @@ export default {
               description: doc.data().description,
               gift: doc.data().gift,
               imageUrl: doc.data().imageUrl,
+              imagePath: doc.data().imagePath,
               creatorId: doc.data().creatorId,
               dateCreated: doc.data().dateCreated,
               recruiting: doc.data().recruiting,
@@ -131,10 +132,11 @@ export default {
         dateCreated: moment().toISOString(),
         imageUrl: '',
         imagePath: '',
-        recruiting: false
+        recruiting: false,
+        status: 'waiting'
       }
       let key
-      commit('setLoading', true)
+      commit('setCreating', true)
       return db.collection('events').add(event)
         .then(function (docRef) {
           key = docRef.id
@@ -165,7 +167,7 @@ export default {
           })
           .then(function () {
             console.log('Event successfully updated with imageUrl!')
-            commit('setLoading', false)
+            commit('setCreating', false)
             commit('createEvent', {
               ...event,
               id: key,
@@ -176,7 +178,7 @@ export default {
           .catch(function (error) {
             // The document probably doesn't exist.
             console.error('Error updating event: ', error)
-            commit('setLoading', false)
+            commit('setCreating', false)
             return error
           })
         })
@@ -184,7 +186,7 @@ export default {
           if (response.message !== 'Event created') {
             console.error('Error adding event: ', response)
           }
-          commit('setLoading', false)
+          commit('setCreating', false)
           return response
         })
     },
@@ -195,9 +197,10 @@ export default {
         date: payload.date,
         description: payload.description,
         imageUrl: payload.imageUrl,
+        imagePath: payload.imagePath,
         dateUpdated: moment().toISOString()
       }
-      commit('setLoading', true)
+      commit('setUpdating', true)
       return db.collection('events').doc(payload.id).update(updatedEvent)
         .then(() => {
           if (!payload.image) {
@@ -214,25 +217,28 @@ export default {
         })
         .then(fileData => {
           let imagePath = fileData.metadata.fullPath
+          payload.imagePath = imagePath
           return firebase.storage().ref().child(imagePath).getDownloadURL()
         })
         .then(url => {
           return db.collection('events').doc(payload.id).update({
-            imageUrl: url
+            imageUrl: url,
+            imagePath: payload.imagePath
           })
           .then(function () {
             console.log('Event successfully updated with imageUrl!')
-            commit('setLoading', false)
+            commit('setUpdating', false)
             commit('updateEvent', {
               ...updatedEvent,
               id: payload.id,
-              imageUrl: url
+              imageUrl: url,
+              imagePath: payload.imagePath
             })
           })
           .catch(function (error) {
             // The document probably doesn't exist.
             console.error('Error updating event: ', error)
-            commit('setLoading', false)
+            commit('setUpdating', false)
             return error
           })
         })
@@ -240,7 +246,7 @@ export default {
           if (response.message !== 'Event updated') {
             console.error('Error updating event: ', response)
           }
-          commit('setLoading', false)
+          commit('setUpdating', false)
           return response
         })
     },
@@ -260,7 +266,7 @@ export default {
         return
       }
 
-      commit('setLoading', true)
+      commit('setDeleting', true)
       const batch = db.batch()
       const promises = []
 
@@ -294,11 +300,11 @@ export default {
       })
       promises.push(taskPromise)
 
-      Promise.all(promises).then(response => {
+      return Promise.all(promises).then(response => {
         batch.commit()
           .then(() => {
             if (!payload.imagePath) {
-              commit('setLoading', false)
+              commit('setDeleting', false)
               commit('deleteEvent', {
                 ...event,
                 id: payload.id
@@ -309,14 +315,14 @@ export default {
               .then(function () {
                 console.log('Event deleted.')
                 console.log('Event image successfully deleted!')
-                commit('setLoading', false)
+                commit('setDeleting', false)
                 commit('deleteEvent', {
                   ...event,
                   id: payload.id
                 })
               })
               .catch(function (error) {
-                commit('setLoading', false)
+                commit('setDeleting', false)
                 // The document probably doesn't exist.
                 console.error('Error deleting event image: ', error)
                 return error
@@ -324,12 +330,12 @@ export default {
             }
           })
         .catch(error => {
-          commit('setLoading', false)
+          commit('setDeleting', false)
           console.error('Error deleting event: ', error)
         })
       })
       .catch(error => {
-        commit('setLoading', false)
+        commit('setDeleting', false)
         console.error('Error fetching data: ', error)
       })
     },
