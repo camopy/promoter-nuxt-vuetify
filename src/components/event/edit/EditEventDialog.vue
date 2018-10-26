@@ -101,8 +101,8 @@
             </v-container>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn flat :disabled="loading" color="primary" @click="onCancel">Cancelar</v-btn>
-              <v-btn flat :disabled="!valid || loading" :loading="loading" @click="onUpdateEvent">
+              <v-btn flat :disabled="updating" color="primary" @click="onCancel">Cancelar</v-btn>
+              <v-btn flat :disabled="!valid || updating" :loading="updating" @click="onUpdateEvent">
                 Salvar
                 <span slot="loader" class="custom-loader">
                   <v-icon light>cached</v-icon>
@@ -123,8 +123,8 @@ export default {
   mixins: [Date],
   props: ['event'],
   computed: {
-    loading () {
-      return this.$store.getters.loading
+    updating () {
+      return this.$store.getters.updating
     },
     computedDateFormatted () {
       return this.formatDate(this.date)
@@ -151,7 +151,8 @@ export default {
       description: this.event.description,
       gift: this.event.gift,
       image: null,
-      imageUrl: this.event.imageUrl
+      imageUrl: this.event.imageUrl,
+      imagePath: this.event.imagePath
     }
   },
 
@@ -163,6 +164,7 @@ export default {
       this.date = this.event.date
       this.description = this.event.description
       this.imageUrl = this.event.imageUrl
+      this.imagePath = this.event.imagePath
     },
     onUpdateEvent () {
       if (this.$refs.form.validate()) {
@@ -173,6 +175,7 @@ export default {
           date: this.date,
           description: this.description,
           imageUrl: this.event.imageUrl,
+          imagePath: this.event.imagePath,
           image: this.image
         }
         this.$store.dispatch('updateEvent', eventData)

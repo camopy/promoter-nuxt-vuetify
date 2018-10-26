@@ -112,8 +112,8 @@
             </v-container>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn flat :disabled="loading" color="primary" @click="onCancel">Cancelar</v-btn>
-              <v-btn flat :disabled="!valid || loading" :loading="loading" @click="onUpdateTask">
+              <v-btn flat :disabled="updating" color="primary" @click="onCancel">Cancelar</v-btn>
+              <v-btn flat :disabled="!valid || updating" :loading="updating" @click="onUpdateTask">
                 Salvar
                 <span slot="loader" class="custom-loader">
                   <v-icon light>cached</v-icon>
@@ -143,8 +143,8 @@ export default {
     events () {
       return this.$store.getters.loadedEventsFromUser
     },
-    loading () {
-      return this.$store.getters.loading
+    updating () {
+      return this.$store.getters.updating
     }
   },
 
@@ -171,6 +171,7 @@ export default {
       description: this.task.description,
       image: null,
       imageUrl: this.task.imageUrl,
+      imagePath: this.task.imagePath,
       event: {name: this.task.eventName, id: this.task.eventId}
     }
   },
@@ -185,6 +186,7 @@ export default {
       this.finalDate = this.task.finalDate
       this.description = this.task.description
       this.imageUrl = this.task.imageUrl
+      this.imagePath = this.task.imagePath
     },
     onUpdateTask () {
       if (this.$refs.form.validate()) {
@@ -196,6 +198,7 @@ export default {
           description: this.description,
           image: this.image,
           imageUrl: this.task.imageUrl,
+          imagePath: this.task.imagePath,
           eventId: this.event.id,
           eventName: this.event.name
         }

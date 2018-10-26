@@ -95,8 +95,8 @@
       </v-container>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn flat :disabled="loading" color="primary" @click="dialog = false">Cancelar</v-btn>
-        <v-btn flat :disabled="!valid || loading" :loading="loading" @click="onCreateEvent">
+        <v-btn flat :disabled="creating" color="primary" @click="dialog = false">Cancelar</v-btn>
+        <v-btn flat :disabled="!valid || creating" :loading="creating" @click="onCreateEvent">
           Salvar
           <span slot="loader" class="custom-loader">
             <v-icon light>cached</v-icon>
@@ -128,11 +128,12 @@ export default {
           this.$refs.form.reset()
           this.gift = ''
           this.description = ''
+          this.date = ''
         }
       }
     },
-    loading () {
-      return this.$store.getters.loading
+    creating () {
+      return this.$store.getters.creating
     },
     computedDateFormatted () {
       return this.formatDate(this.date)

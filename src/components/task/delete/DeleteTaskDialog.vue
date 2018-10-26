@@ -21,8 +21,8 @@
             </v-layout>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn flat :disabled="loading" color="primary" @click="onCancel">Cancelar</v-btn>
-              <v-btn flat :disabled="loading" :loading="loading" @click="onDeleteTask">
+              <v-btn flat :disabled="deleting" color="primary" @click="onCancel">Cancelar</v-btn>
+              <v-btn flat :disabled="deleting" :loading="deleting" @click="onDeleteTask">
                 Deletar
                 <span slot="loader" class="custom-loader">
                   <v-icon light>cached</v-icon>
@@ -43,8 +43,8 @@ export default {
   mixins: [Date],
   props: ['task'],
   computed: {
-    loading () {
-      return this.$store.getters.loading
+    deleting () {
+      return this.$store.getters.deleting
     }
   },
 
@@ -84,7 +84,7 @@ export default {
       .then(response => {
         this.deleteTaskDialog = false
         this.image = null
-        this.$router.go(-2)
+        this.$router.go(-1)
       })
     }
   }

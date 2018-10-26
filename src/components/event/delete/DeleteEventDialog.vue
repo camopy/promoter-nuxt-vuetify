@@ -21,8 +21,8 @@
             </v-layout>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn flat :disabled="loading" color="primary" @click="onCancel">Cancelar</v-btn>
-              <v-btn flat :disabled="loading" :loading="loading" @click="onDeleteEvent">
+              <v-btn flat :disabled="deleting" color="primary" @click="onCancel">Cancelar</v-btn>
+              <v-btn flat :disabled="deleting" :loading="deleting" @click="onDeleteEvent">
                 Deletar
                 <span slot="loader" class="custom-loader">
                   <v-icon light>cached</v-icon>
@@ -43,8 +43,8 @@ export default {
   mixins: [Date],
   props: ['event'],
   computed: {
-    loading () {
-      return this.$store.getters.loading
+    deleting () {
+      return this.$store.getters.deleting
     }
   },
 

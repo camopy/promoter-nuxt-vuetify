@@ -106,8 +106,8 @@
       </v-container>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn flat :disabled="loading" color="primary" @click="dialog = false">Cancelar</v-btn>
-        <v-btn flat :disabled="!valid || loading" :loading="loading" @click="onCreateTask">
+        <v-btn flat :disabled="creating" color="primary" @click="dialog = false">Cancelar</v-btn>
+        <v-btn flat :disabled="!valid || creating" :loading="creating" @click="onCreateTask">
           Salvar
           <span slot="loader" class="custom-loader">
             <v-icon light>cached</v-icon>
@@ -137,6 +137,8 @@ export default {
           this.imageUrl = ''
           this.$refs.form.reset()
           this.description = ''
+          this.date = ''
+          this.finalDate = ''
         }
       }
     },
@@ -149,8 +151,8 @@ export default {
     events () {
       return this.$store.getters.loadedEventsFromUser
     },
-    loading () {
-      return this.$store.getters.loading
+    creating () {
+      return this.$store.getters.creating
     }
   },
 
