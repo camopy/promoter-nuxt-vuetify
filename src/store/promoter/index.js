@@ -36,7 +36,9 @@ export default {
               email: doc.data().email,
               dateCreated: doc.data().dateCreated,
               instagram: doc.data().instagram,
-              facebook: doc.data().facebook
+              facebook: doc.data().facebook,
+              imageUrl: doc.data().imageUrl,
+              imagePath: doc.data().imagePath
             })
           })
           commit('setLoadedPromoters', promoters)

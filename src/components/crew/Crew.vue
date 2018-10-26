@@ -17,15 +17,16 @@
                 <h1>{{ crew.name }}</h1>
               </div>
             </v-card-title>
-            <!-- <v-card-media
+            <v-card-media
               :src="crew.imageUrl"
               height="400px"
-            ></v-card-media> -->
+              contain
+            ></v-card-media>
             <v-card-text>
               <div>
                 {{crew.email}}
-                <app-url-icon v-if="crew.facebook" :url="'https://www.facebook.com/' + crew.facebook" icon="fa-facebook"></app-url-icon>
-                <app-url-icon v-if="crew.instagram" :url="'https://www.instagram.com/' + crew.instagram" icon="fa-instagram"></app-url-icon>
+                <app-url-icon v-if="crew.facebook" :url="'https://www.facebook.com/' + crew.facebook" icon="fab fa-facebook"></app-url-icon>
+                <app-url-icon v-if="crew.instagram" :url="'https://www.instagram.com/' + crew.instagram" icon="fab fa-instagram"></app-url-icon>
               </div>
             </v-card-text>
           </v-card>

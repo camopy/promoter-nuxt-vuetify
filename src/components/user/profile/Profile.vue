@@ -20,6 +20,11 @@
               <app-profile-edit-dialog :user="user"></app-profile-edit-dialog>
             </v-card-title>
             <v-card-text>
+              <v-card-media
+                :src="user.imageUrl"
+                height="400px"
+                contain
+              ></v-card-media>
               <div>
                 {{user.email}}
                 <app-url-icon v-if="user.facebook" :url="'https://www.facebook.com/' + user.facebook" icon="fab fa-facebook"></app-url-icon>

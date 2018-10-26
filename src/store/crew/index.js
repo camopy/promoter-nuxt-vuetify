@@ -22,7 +22,9 @@ export default {
               email: doc.data().email,
               dateCreated: doc.data().dateCreated,
               facebook: doc.data().facebook,
-              instagram: doc.data().instagram
+              instagram: doc.data().instagram,
+              imageUrl: doc.data().imageUrl,
+              imagePath: doc.data().imagePath
             })
           })
           commit('setLoadedCrewList', crew)

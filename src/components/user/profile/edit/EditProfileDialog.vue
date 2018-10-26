@@ -26,6 +26,24 @@
                   <div>{{user.email}}</div>
                   <v-form ref="form">
                     <v-layout row>
+                      <v-flex xs12 sm4 md3>
+                        <input
+                          type="file"
+                          style="display:none"
+                          ref="fileInput"
+                          @change="onFilePicked"
+                        >
+                        <v-card>
+                          <v-card-media
+                            :src="imageUrl"
+                            height="120px"
+                            contain
+                            @click="onPickFile"
+                          ></v-card-media>
+                        </v-card>
+                      </v-flex>
+                    </v-layout>
+                    <v-layout row>
                       <v-flex xs12>
                         <v-text-field
                           prepend-icon="fab fa-facebook-square"
@@ -50,15 +68,12 @@
                 <v-divider></v-divider>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn
-                    class="red--text darken-1"
-                    flat
-                    @click="onCancel">Cancelar
-                  </v-btn>
-                  <v-btn
-                    class="green--text darken-1"
-                    flat
-                    @click="onAgree">Confirmar
+                  <v-btn flat :disabled="updating" class="red--text darken-1" @click="onCancel">Cancelar</v-btn>
+                  <v-btn flat :disabled="updating" class="green--text darken-1" :loading="updating" @click="onAgree">
+                    Confirmar
+                    <span slot="loader" class="custom-loader">
+                      <v-icon light>cached</v-icon>
+                    </span>
                   </v-btn>
                 </v-card-actions>
               </v-card>
@@ -76,13 +91,19 @@ export default {
   data () {
     return {
       editProfileDialog: false,
-      facebook: this.user.facebook,
-      instagram: this.user.instagram
+      facebook: this.user.facebook || '',
+      instagram: this.user.instagram || '',
+      image: null,
+      imageUrl: this.user.imageUrl || '',
+      imagePath: this.user.imagePath || ''
     }
   },
   computed: {
     loading () {
       return this.$store.getters.loading
+    },
+    updating () {
+      return this.$store.getters.updating
     }
   },
   methods: {
@@ -90,6 +111,8 @@ export default {
       this.editProfileDialog = false
       this.facebook = this.user.facebook
       this.instagram = this.user.instagram
+      this.imageUrl = this.user.imageUrl
+      this.imagePath = this.user.imagePath
     },
     onAgree () {
       // eslint-disable-next-line
@@ -97,12 +120,74 @@ export default {
       // eslint-disable-next-line
       const instagramRegex = /(?:https?:\/\/)?(?:www\.)?(?:instagram|ig|m\.instagram)\.(?:com|me)\/(?:(?:\w)*#!\/)?(?:pages\/)?(?:[\w\-]*\/)*([\w\-\.]+)(?:\/)?/i
       const profileData = {
+        id: this.user.id,
         facebook: this.facebook.indexOf('facebook.com/') !== -1 ? this.facebook.match(facebookRegex)[1] : this.facebook,
-        instagram: this.instagram.indexOf('instagram.com/') !== -1 ? this.instagram.match(instagramRegex)[1] : this.instagram
+        instagram: this.instagram.indexOf('instagram.com/') !== -1 ? this.instagram.match(instagramRegex)[1] : this.instagram,
+        image: this.image,
+        imageUrl: this.imageUrl,
+        imagePath: this.imagePath
       }
       this.$store.dispatch('updateUserProfile', profileData)
-      this.editProfileDialog = false
+      .then(response => {
+        this.editProfileDialog = false
+        this.image = null
+      })
+    },
+    onPickFile () {
+      this.$refs.fileInput.click()
+    },
+    onFilePicked (event) {
+      const files = event.target.files
+      let filename = files[0].name
+      if (filename.lastIndexOf('.') <= 0) {
+        return alert('Adicione um arquivo válido')
+      }
+      const fileReader = new FileReader()
+      fileReader.addEventListener('load', () => {
+        this.imageUrl = fileReader.result
+      })
+      fileReader.readAsDataURL(files[0])
+      this.image = files[0]
     }
   }
 }
 </script>
+
+<style>
+  .custom-loader {
+    animation: loader 1s infinite;
+    display: flex;
+  }
+  @-moz-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-o-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
