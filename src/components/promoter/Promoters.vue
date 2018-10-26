@@ -20,6 +20,7 @@
                     <v-card-media
                       :src="promoter.imageUrl"
                       height="150px"
+                      contain
                     ></v-card-media>
                   </v-flex>
                   <v-flex xs7 sm8 md9>

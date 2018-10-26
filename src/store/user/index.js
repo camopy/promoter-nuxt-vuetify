@@ -109,7 +109,11 @@ export default {
             const newDoc = {
               name: payload.name,
               email: payload.email,
-              accountType: payload.accountType
+              accountType: payload.accountType,
+              facebook: '',
+              instagram: '',
+              imageUrl: '',
+              imagePath: ''
             }
             db.collection('users').doc(auth.user.uid).set(newDoc)
               .then(function () {
@@ -166,6 +170,8 @@ export default {
               dateCreated: doc.data().dateCreated,
               facebook: doc.data().facebook,
               instagram: doc.data().instagram,
+              imageUrl: doc.data().imageUrl,
+              imagePath: doc.data().imagePath,
               events: []
             }
             return updatedUser
@@ -302,26 +308,66 @@ export default {
       commit('setUser', null)
     },
     updateUserProfile ({commit, getters}, payload) {
-      commit('setLoading', true)
+      commit('setUpdating', true)
       const user = getters.user
-      db.collection('users').doc(user.id)
+      return db.collection('users').doc(user.id)
       .update({
         updateDate: moment().toISOString(),
         facebook: payload.facebook,
-        instagram: payload.instagram
+        instagram: payload.instagram,
+        imageUrl: payload.imageUrl,
+        imagePath: payload.imagePath
       })
       .then(function () {
-        commit('setLoading', false)
-        commit('setUser', {
-          ...user,
-          facebook: payload.facebook,
-          instagram: payload.instagram
+        if (!payload.image) {
+          commit('setUpdating', false)
+          commit('setUser', {
+            ...user,
+            facebook: payload.facebook,
+            instagram: payload.instagram
+          })
+          console.log('User profile updated')
+          return Promise.reject(new Error('No image'))
+        } else {
+          const filename = payload.image.name
+          const ext = filename.slice(filename.lastIndexOf('.'))
+          return firebase.storage().ref('users/' + payload.id + '/profileImage' + ext).put(payload.image)
+        }
+      })
+      .then(fileData => {
+        let imagePath = fileData.metadata.fullPath
+        payload.imagePath = imagePath
+        return firebase.storage().ref().child(imagePath).getDownloadURL()
+      })
+      .then(url => {
+        return db.collection('users/').doc(payload.id).update({
+          imageUrl: url,
+          imagePath: payload.imagePath
         })
-        console.log('User profile updated')
+        .then(function () {
+          console.log('User profile successfully updated with imageUrl!')
+          commit('setUpdating', false)
+          commit('setUser', {
+            ...user,
+            facebook: payload.facebook,
+            instagram: payload.instagram,
+            imageUrl: url,
+            imagePath: payload.imagePath
+          })
+        })
+        .catch(function (error) {
+          commit('setUpdating', false)
+          // The document probably doesn't exist.
+          console.error('Error updating user profile: ', error)
+          return error
+        })
       })
       .catch(function (error) {
-        commit('setLoading', false)
-        console.error('Error updating user profile: ', error)
+        if (error.message !== 'No image') {
+          console.error('Error updating user profile: ', error)
+        }
+        commit('setUpdating', false)
+        return error
       })
     }
   },

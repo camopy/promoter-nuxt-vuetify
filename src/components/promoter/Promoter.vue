@@ -17,15 +17,16 @@
                 <h1>{{ promoter.name }}</h1>
               </div>
             </v-card-title>
-            <!-- <v-card-media
+            <v-card-media
               :src="promoter.imageUrl"
               height="400px"
-            ></v-card-media> -->
+              contain
+            ></v-card-media>
             <v-card-text>
               <div>
                 {{promoter.email}}
-                <app-url-icon v-if="promoter.facebook" :url="'https://www.facebook.com/' + promoter.facebook" icon="fa-facebook"></app-url-icon>
-                <app-url-icon v-if="promoter.instagram" :url="'https://www.instagram.com/' + promoter.instagram" icon="fa-instagram"></app-url-icon>
+                <app-url-icon v-if="promoter.facebook" :url="'https://www.facebook.com/' + promoter.facebook" icon="fab fa-facebook"></app-url-icon>
+                <app-url-icon v-if="promoter.instagram" :url="'https://www.instagram.com/' + promoter.instagram" icon="fab fa-instagram"></app-url-icon>
               </div>
             </v-card-text>
           </v-card>
