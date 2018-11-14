@@ -249,8 +249,8 @@ export default {
     },
     loadTasksFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('events').doc(payload.id).collection('tasks').get()
-        .then((querySnapshot) => {
+      db.collection('events').doc(payload.id).collection('tasks')
+        .onSnapshot((querySnapshot) => {
           const tasks = []
           querySnapshot.forEach((doc) => {
             tasks.push({
@@ -269,11 +269,10 @@ export default {
           commit('setLoadedTasksFromEvent', tasks)
           commit('setLoadedTasks', tasks)
           commit('setLoading', false)
+        }, function (error) {
+          console.error('Error fetching tasks from event: ', error)
+          commit('setLoading', false)
         })
-      .catch(function (error) {
-        console.error('Error fetching tasks from event: ', error)
-        commit('setLoading', false)
-      })
     },
     releaseTask ({commit, getters, dispatch}, payload) {
       commit('setLoading', true)
@@ -355,8 +354,8 @@ export default {
       commit('setLoading', true)
       const user = getters.user
       db.collection('taskReports').where('promoterId', '==', user.id)
-        .where('eventId', '==', payload.id).get()
-        .then((querySnapshot) => {
+        .where('eventId', '==', payload.id)
+        .onSnapshot((querySnapshot) => {
           const taskReports = []
           querySnapshot.forEach((report) => {
             taskReports.push({
@@ -367,11 +366,10 @@ export default {
           commit('setLoadedTaskReportsFromEvent', taskReports)
           commit('setLoadedTaskReports', taskReports)
           commit('setLoading', false)
+        }, function (error) {
+          console.error('Error fetching task reports from event: ', error)
+          commit('setLoading', false)
         })
-      .catch(function (error) {
-        console.error('Error fetching task reports from event: ', error)
-        commit('setLoading', false)
-      })
     }
   },
   getters: {

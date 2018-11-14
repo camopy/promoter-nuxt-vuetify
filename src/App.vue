@@ -104,11 +104,10 @@
       <v-btn icon>
         <v-icon>notifications</v-icon>
       </v-btn>
-      <v-btn icon large>
-        <v-avatar size="32px" tile>
+      <v-btn v-if="userIsAuthenticated" icon large>
+        <v-avatar size="32px" circle>
           <img
-            src="https://cdn.vuetifyjs.com/images/logos/logo.svg"
-            alt="Vuetify"
+            :src="userProfileImage"
           >
         </v-avatar>
       </v-btn>
@@ -233,10 +232,14 @@
         return items
       },
       userIsAuthenticated () {
+        console.log('asdfa')
         return this.$store.getters.user !== null && this.$store.getters.user !== undefined
       },
       userIsCrew () {
         return this.$store.getters.user.accountType === 'crew'
+      },
+      userProfileImage () {
+        return this.$store.getters.user.imageUrl
       }
     },
     props: {

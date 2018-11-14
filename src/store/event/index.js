@@ -92,30 +92,28 @@ export default {
   actions: {
     loadEvents ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('events').get()
-        .then((querySnapshot) => {
-          const events = []
-          querySnapshot.forEach((doc) => {
-            events.push({
-              id: doc.id,
-              name: doc.data().name,
-              state: doc.data().state,
-              city: doc.data().city,
-              date: doc.data().date,
-              description: doc.data().description,
-              gift: doc.data().gift,
-              imageUrl: doc.data().imageUrl,
-              imagePath: doc.data().imagePath,
-              creatorId: doc.data().creatorId,
-              dateCreated: doc.data().dateCreated,
-              recruiting: doc.data().recruiting,
-              status: doc.data().status
-            })
+      db.collection('events').onSnapshot((querySnapshot) => {
+        const events = []
+        querySnapshot.forEach((doc) => {
+          events.push({
+            id: doc.id,
+            name: doc.data().name,
+            state: doc.data().state,
+            city: doc.data().city,
+            date: doc.data().date,
+            description: doc.data().description,
+            gift: doc.data().gift,
+            imageUrl: doc.data().imageUrl,
+            imagePath: doc.data().imagePath,
+            creatorId: doc.data().creatorId,
+            dateCreated: doc.data().dateCreated,
+            recruiting: doc.data().recruiting,
+            status: doc.data().status
           })
-          commit('setLoadedEvents', events)
-          commit('setLoading', false)
         })
-      .catch(function (error) {
+        commit('setLoadedEvents', events)
+        commit('setLoading', false)
+      }, function (error) {
         console.error('Error fetching events: ', error)
         commit('setLoading', false)
       })

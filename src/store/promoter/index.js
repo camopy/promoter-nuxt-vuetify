@@ -26,8 +26,8 @@ export default {
   actions: {
     loadPromoters ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('users').where('accountType', '==', 'promoter').get()
-        .then((querySnapshot) => {
+      db.collection('users').where('accountType', '==', 'promoter')
+        .onSnapshot((querySnapshot) => {
           const promoters = []
           querySnapshot.forEach((doc) => {
             promoters.push({
@@ -43,16 +43,15 @@ export default {
           })
           commit('setLoadedPromoters', promoters)
           commit('setLoading', false)
+        }, function (error) {
+          console.error('Error fetching users by accountType: ', error)
+          commit('setLoading', false)
         })
-      .catch(function (error) {
-        console.error('Error fetching users by accountType: ', error)
-        commit('setLoading', false)
-      })
     },
     loadPromotersFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('promoters').where('eventId', '==', payload.id).get()
-        .then((querySnapshot) => {
+      db.collection('promoters').where('eventId', '==', payload.id)
+        .onSnapshot((querySnapshot) => {
           const promoters = []
           querySnapshot.forEach((doc) => {
             promoters.push({
@@ -65,11 +64,10 @@ export default {
           })
           commit('setLoadedPromotersFromEvent', promoters)
           commit('setLoading', false)
+        }, function (error) {
+          console.error('Error fetching events from user: ', error)
+          commit('setLoading', false)
         })
-      .catch(function (error) {
-        console.error('Error fetching events from user: ', error)
-        commit('setLoading', false)
-      })
     },
     updatePromoterStatusFromEvent ({commit}, payload) {
       commit('setLoading', true)
