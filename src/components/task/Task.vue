@@ -9,8 +9,8 @@
                 <h1>{{ task.name }} - {{ task.eventName }}</h1>
               </div>
               <v-spacer></v-spacer>
-              <app-task-edit-dialog :task="task"></app-task-edit-dialog>
-              <app-task-delete-dialog :task="task"></app-task-delete-dialog>
+              <app-task-edit-dialog v-if="userIsCreator" :task="task"></app-task-edit-dialog>
+              <app-task-delete-dialog v-if="userIsCreator" :task="task"></app-task-delete-dialog>
             </v-card-title>
             <v-card-text>
               <div>{{formatDate(task.date)}}</div>
@@ -48,6 +48,12 @@ export default {
     },
     userIsPromoter () {
       return this.$store.getters.user.accountType === 'promoter'
+    },
+    userIsCreator () {
+      if (!this.userIsAuthenticated) {
+        return false
+      }
+      return this.$store.getters.user.id === this.task.crewId
     }
   }
 }
