@@ -12,8 +12,8 @@ export default {
   actions: {
     loadCrew ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('users').where('accountType', '==', 'crew').get()
-        .then((querySnapshot) => {
+      db.collection('users').where('accountType', '==', 'crew')
+        .onSnapshot((querySnapshot) => {
           const crew = []
           querySnapshot.forEach((doc) => {
             crew.push({
@@ -29,11 +29,10 @@ export default {
           })
           commit('setLoadedCrewList', crew)
           commit('setLoading', false)
+        }, function (error) {
+          console.error('Error fetching users by accountType: ', error)
+          commit('setLoading', false)
         })
-      .catch(function (error) {
-        console.error('Error fetching users by accountType: ', error)
-        commit('setLoading', false)
-      })
     }
   },
   getters: {

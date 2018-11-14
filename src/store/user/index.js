@@ -174,6 +174,7 @@ export default {
               imagePath: doc.data().imagePath,
               events: []
             }
+            commit('setUser', updatedUser)
             return updatedUser
           } else {
             return Promise.reject(new Error('Usuário não encontrado'))
@@ -182,8 +183,8 @@ export default {
         .then(updatedUser => {
           if (updatedUser.accountType === 'promoter') {
             let promises = []
-            const eventsPromise = db.collection('promoters').where('userId', '==', updatedUser.id).get()
-              .then((querySnapshot) => {
+            const eventsPromise = db.collection('promoters').where('userId', '==', updatedUser.id)
+              .onSnapshot((querySnapshot) => {
                 let events = []
                 querySnapshot.forEach((promoter) => {
                   if (promoter.data().status !== 'left' && promoter.data().status !== 'declined') {
@@ -197,9 +198,11 @@ export default {
                     })
                   }
                 })
+                commit('setLoadedEventsFromUser', events)
+                updatedUser.events = events
+                commit('setUser', updatedUser)
                 return events
-              })
-              .catch(function (error) {
+              }, function (error) {
                 console.log('Error getting events:', error)
                 return Promise.reject(error)
               })
@@ -207,8 +210,8 @@ export default {
 
             const taskReportsPromises = db.collection('taskReports')
               .where('promoterId', '==', updatedUser.id)
-              .where('status', '==', 'notstarted').get()
-              .then(querySnapshot => {
+              .where('status', '==', 'notstarted')
+              .onSnapshot((querySnapshot) => {
                 const taskReports = []
                 querySnapshot.forEach((doc) => {
                   taskReports.push({
@@ -216,20 +219,22 @@ export default {
                     id: doc.id
                   })
                 })
+                commit('setLoadedTasks', taskReports)
+                updatedUser.tasks = taskReports
+                commit('setUser', updatedUser)
                 return taskReports
-              })
-              .catch(function (error) {
+              }, function (error) {
                 console.error('Error fetching task reports: ', error)
                 return Promise.reject(error)
               })
             promises.push(taskReportsPromises)
 
             Promise.all(promises).then(response => {
-              updatedUser.events = response[0]
-              updatedUser.tasks = response[1]
-              commit('setUser', updatedUser)
-              commit('setLoadedTasks', response[1])
-              commit('setLoadedEventsFromUser', response[0])
+              // updatedUser.events = response[0]
+              // updatedUser.tasks = response[1]
+              // commit('setUser', updatedUser)
+              // commit('setLoadedTasks', response[1])
+              // commit('setLoadedEventsFromUser', response[0])
               commit('setLoading', false)
             })
             .catch(error => {
@@ -238,8 +243,8 @@ export default {
             })
           } else {
             let promises = []
-            const eventPromise = db.collection('events').where('creatorId', '==', updatedUser.id).get()
-              .then((querySnapshot) => {
+            const eventPromise = db.collection('events').where('creatorId', '==', updatedUser.id)
+              .onSnapshot((querySnapshot) => {
                 const events = []
                 querySnapshot.forEach((event) => {
                   events.push({
@@ -257,10 +262,11 @@ export default {
                     status: event.data().status
                   })
                 })
-
+                commit('setLoadedEventsFromUser', events)
+                updatedUser.events = events
+                commit('setUser', updatedUser)
                 return events
-              })
-              .catch(function (error) {
+              }, function (error) {
                 console.error('Error fetching events from user: ', error)
                 return Promise.reject(error)
               })
@@ -268,8 +274,8 @@ export default {
 
             const taskReportPromise = db.collection('taskReports')
               .where('crewId', '==', updatedUser.id)
-              .where('status', '==', 'done').get()
-              .then(querySnapshot => {
+              .where('status', '==', 'done')
+              .onSnapshot((querySnapshot) => {
                 const taskReports = []
                 querySnapshot.forEach(task => {
                   taskReports.push({
@@ -277,19 +283,19 @@ export default {
                     id: task.id
                   })
                 })
+                commit('setLoadedTaskReports', taskReports)
                 return taskReports
-              })
-              .catch(function (error) {
+              }, function (error) {
                 console.error('Error fetching task reports: ', error)
                 return Promise.reject(error)
               })
             promises.push(taskReportPromise)
 
             Promise.all(promises).then(response => {
-              updatedUser.events = response[0]
-              commit('setLoadedTaskReports', response[1])
-              commit('setLoadedEventsFromUser', response[0])
-              commit('setUser', updatedUser)
+              // updatedUser.events = response[0]
+              // commit('setLoadedTaskReports', response[1])
+              // commit('setLoadedEventsFromUser', response[0])
+              // commit('setUser', updatedUser)
               commit('setLoading', false)
             })
             .catch(error => {
