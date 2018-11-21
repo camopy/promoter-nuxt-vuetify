@@ -29,6 +29,9 @@
                       <v-btn flat @click="onReleaseTask(task)">
                         Liberar Missão
                       </v-btn>
+                      <v-btn flat :to="'/tasks/' + task.id + '/stats'">
+                        Estatísticas
+                      </v-btn>
                     </v-card-actions>
                   </v-flex>
                 </v-layout>

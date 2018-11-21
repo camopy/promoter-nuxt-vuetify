@@ -232,7 +232,6 @@
         return items
       },
       userIsAuthenticated () {
-        console.log('asdfa')
         return this.$store.getters.user !== null && this.$store.getters.user !== undefined
       },
       userIsCrew () {

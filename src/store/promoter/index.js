@@ -59,7 +59,11 @@ export default {
               name: doc.data().userName,
               status: doc.data().status,
               applyDate: doc.data().applyDate,
-              updateDate: doc.data().updateDate
+              updateDate: doc.data().updateDate,
+              taskReportsDone: doc.data().taskReportsDone,
+              taskReportsNotdone: doc.data().taskReportsNotdone,
+              taskReportsIncomplete: doc.data().taskReportsIncomplete,
+              taskReportsComplete: doc.data().taskReportsComplete
             })
           })
           commit('setLoadedPromotersFromEvent', promoters)
@@ -98,6 +102,13 @@ export default {
     },
     loadedPromotersFromEvent (state) {
       return state.loadedPromotersFromEvent
+    },
+    loadedPromoterFromEvent (state) {
+      return (promoterId) => {
+        return state.loadedPromotersFromEvent.find((promoter) => {
+          return promoter.id === promoterId
+        })
+      }
     }
   }
 }
