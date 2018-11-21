@@ -17,6 +17,9 @@ import TasksFromEvent from '@/components/user/profile/myevent/task/TasksFromEven
 import TaskReportsFromEvent from '@/components/user/profile/myevent/task/report/TaskReportsFromEvent'
 import TaskReports from '@/components/task/report/TaskReports'
 import TaskReport from '@/components/task/report/TaskReport'
+import EventStats from '@/components/event/stats/EventStats'
+import TaskStats from '@/components/task/stats/TaskStats'
+import PromoterStats from '@/components/user/profile/myevent/promoter/stats/PromoterStats'
 import AuthGuard from './auth-guard'
 
 Vue.use(Router)
@@ -49,6 +52,13 @@ export default new Router({
       name: 'Task',
       component: Task,
       props: true,
+      beforeEnter: AuthGuard
+    },
+    {
+      path: '/tasks/:taskId/stats',
+      name: 'TaskStats',
+      props: true,
+      component: TaskStats,
       beforeEnter: AuthGuard
     },
     {
@@ -85,6 +95,12 @@ export default new Router({
       component: Promoter
     },
     {
+      path: '/promoters/:promoterId/stats',
+      name: 'PromoterStats',
+      props: true,
+      component: PromoterStats
+    },
+    {
       path: '/profile',
       name: 'Profile',
       component: Profile,
@@ -115,6 +131,13 @@ export default new Router({
       name: 'TaskReportsFromEvent',
       props: true,
       component: TaskReportsFromEvent,
+      beforeEnter: AuthGuard
+    },
+    {
+      path: '/events/:eventId/stats',
+      name: 'EventStats',
+      props: true,
+      component: EventStats,
       beforeEnter: AuthGuard
     },
     {

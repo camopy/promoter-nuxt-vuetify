@@ -77,7 +77,12 @@ export default {
         dateCreated: moment().toISOString(),
         imageUrl: '',
         imagePath: '',
-        status: 'waiting'
+        status: 'waiting',
+        taskReportsTotal: 0,
+        taskReportsDone: 0,
+        taskReportsNotdone: 0,
+        taskReportsIncomplete: 0,
+        taskReportsComplete: 0
       }
       let key
       commit('setCreating', true)
@@ -249,7 +254,7 @@ export default {
     },
     loadTasksFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('events').doc(payload.id).collection('tasks')
+      return db.collection('events').doc(payload.id).collection('tasks')
         .onSnapshot((querySnapshot) => {
           const tasks = []
           querySnapshot.forEach((doc) => {
@@ -263,7 +268,12 @@ export default {
               imageUrl: doc.data().imageUrl,
               imagePath: doc.data().imagePath,
               eventName: payload.name,
-              eventId: payload.id
+              eventId: payload.id,
+              taskReportsTotal: doc.data().taskReportsTotal,
+              taskReportsDone: doc.data().taskReportsDone,
+              taskReportsNotdone: doc.data().taskReportsNotdone,
+              taskReportsIncomplete: doc.data().taskReportsIncomplete,
+              taskReportsComplete: doc.data().taskReportsComplete
             })
           })
           commit('setLoadedTasksFromEvent', tasks)
@@ -286,6 +296,11 @@ export default {
             let taskReportDoc = db.collection('taskReports').doc(promoter.id + '_' + payload.task.id)
             const taskReportPromise = taskReportDoc.get().then(function (taskReport) {
               if (!taskReport.exists) {
+                delete payload.task.taskReportsTotal
+                delete payload.task.taskReportsDone
+                delete payload.task.taskReportsComplete
+                delete payload.task.taskReportsIncomplete
+                delete payload.task.taskReportsNotdone
                 batch.set(taskReportDoc, {
                   ...payload.task,
                   taskId: payload.task.id,

@@ -35,6 +35,9 @@
                       <!-- <v-icon left light>arrow_forward</v-icon> -->
                       Ver Divulgador
                     </v-btn>
+                    <v-btn flat v-if="promoter.status === 'promoting'" :to="'/promoters/' + promoter.id + '/stats'">
+                      Estatísticas
+                    </v-btn>
                     <v-btn flat v-if="promoter.status === 'applying'" @click="onAcceptPromoter(promoter)">
                       Aceitar
                     </v-btn><v-btn flat v-if="promoter.status === 'applying'" @click="onDeclinePromoter(promoter)">
