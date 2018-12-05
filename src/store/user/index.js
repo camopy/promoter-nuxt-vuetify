@@ -44,7 +44,12 @@ export default {
         eventName: payload.name,
         eventImageUrl: payload.imageUrl,
         applyDate: moment().toISOString(),
-        status: 'applying'
+        status: 'applying',
+        taskReportsTotal: 0,
+        taskReportsDone: 0,
+        taskReportsNotdone: 0,
+        taskReportsIncomplete: 0,
+        taskReportsComplete: 0
       }
 
       return db.collection('promoters').doc(promoter.userId + '_' + promoter.eventId).set(promoter)

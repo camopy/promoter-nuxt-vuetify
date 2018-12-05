@@ -65,7 +65,7 @@
                 <v-layout row>
                   <v-flex xs12>
                     <v-radio-group v-model="accountType" :rules="accountTypeRules" row>
-                      <v-radio label="Promoter" value="promoter"></v-radio>
+                      <v-radio label="Divulgador" value="promoter"></v-radio>
                       <v-radio label="Organização" value="crew"></v-radio>
                     </v-radio-group>
                   </v-flex>
@@ -77,7 +77,7 @@
                       <span slot="loader" class="custom-loader">
                         <v-icon light>cached</v-icon>
                       </span>
-                    </v-btn>                    
+                    </v-btn>
                   </v-flex>
                 </v-layout>
               </v-form>

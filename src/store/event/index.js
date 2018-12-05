@@ -143,10 +143,10 @@ export default {
         })
         .then(key => {
           if (!payload.image) {
-            commit('createEvent', {
-              ...event,
-              id: key
-            })
+            // commit('createEvent', {
+            //   ...event,
+            //   id: key
+            // })
             return Promise.reject(new Error('Event created'))
           }
           const filename = payload.image.name
@@ -166,12 +166,12 @@ export default {
           .then(function () {
             console.log('Event successfully updated with imageUrl!')
             commit('setCreating', false)
-            commit('createEvent', {
-              ...event,
-              id: key,
-              imageUrl: url,
-              imagePath: payload.imagePath
-            })
+            // commit('createEvent', {
+            //   ...event,
+            //   id: key,
+            //   imageUrl: url,
+            //   imagePath: payload.imagePath
+            // })
           })
           .catch(function (error) {
             // The document probably doesn't exist.
@@ -303,10 +303,10 @@ export default {
           .then(() => {
             if (!payload.imagePath) {
               commit('setDeleting', false)
-              commit('deleteEvent', {
-                ...event,
-                id: payload.id
-              })
+              // commit('deleteEvent', {
+              //   ...event,
+              //   id: payload.id
+              // })
               console.log('Event deleted.')
             } else {
               firebase.storage().ref(payload.imagePath).delete()
@@ -314,10 +314,10 @@ export default {
                 console.log('Event deleted.')
                 console.log('Event image successfully deleted!')
                 commit('setDeleting', false)
-                commit('deleteEvent', {
-                  ...event,
-                  id: payload.id
-                })
+                // commit('deleteEvent', {
+                //   ...event,
+                //   id: payload.id
+                // })
               })
               .catch(function (error) {
                 commit('setDeleting', false)

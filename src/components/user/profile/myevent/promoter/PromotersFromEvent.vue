@@ -38,10 +38,17 @@
                     <v-btn flat v-if="promoter.status === 'promoting'" :to="'/promoters/' + promoter.id + '/stats'">
                       Estatísticas
                     </v-btn>
-                    <v-btn flat v-if="promoter.status === 'applying'" @click="onAcceptPromoter(promoter)">
+                    <v-btn flat v-if="promoter.status === 'applying'" :disabled="updating" :loading="updating" class="green--text darken-1" @click="onAcceptPromoter(promoter)">
                       Aceitar
-                    </v-btn><v-btn flat v-if="promoter.status === 'applying'" @click="onDeclinePromoter(promoter)">
+                      <span slot="loader" class="custom-loader">
+                        <v-icon light>cached</v-icon>
+                      </span>
+                    </v-btn>
+                    <v-btn flat v-if="promoter.status === 'applying'" :disabled="updating" :loading="updating" class="red--text darken-1" @click="onDeclinePromoter(promoter)">
                       Recusar
+                      <span slot="loader" class="custom-loader">
+                        <v-icon light>cached</v-icon>
+                      </span>
                     </v-btn>
                   </v-card-actions>
                 </v-flex>
@@ -64,6 +71,9 @@ export default {
     loading () {
       return this.$store.getters.loading
     },
+    updating () {
+      return this.$store.getters.updating
+    },
     event () {
       return this.$store.getters.loadedEventFromUser(this.eventId)
     }
@@ -81,3 +91,42 @@ export default {
   }
 }
 </script>
+
+<style>
+  .custom-loader {
+    animation: loader 1s infinite;
+    display: flex;
+  }
+  @-moz-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-o-keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes loader {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

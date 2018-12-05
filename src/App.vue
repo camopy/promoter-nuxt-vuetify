@@ -104,7 +104,7 @@
       <v-btn icon>
         <v-icon>notifications</v-icon>
       </v-btn>
-      <v-btn v-if="userIsAuthenticated" icon large>
+      <v-btn v-if="userIsAuthenticated && userProfileImage" icon large>
         <v-avatar size="32px" circle>
           <img
             :src="userProfileImage"
