@@ -44,12 +44,12 @@ new Vue({
   template: '<App/>',
   created () {
     firebase.initializeApp({
-      apiKey: 'AIzaSyB6brmAMm-PoNBSSq1w3Zd64LoWTZ5ECTk',
-      authDomain: 'promoter-dev.firebaseapp.com',
-      databaseURL: 'https://promoter-dev.firebaseio.com',
-      projectId: 'promoter-dev',
-      storageBucket: 'promoter-dev.appspot.com',
-      messagingSenderId: '958587428573'
+      apiKey: 'removed-and-fb-project-deleted',
+      authDomain: 'removed-and-fb-project-deleted',
+      databaseURL: 'removed-and-fb-project-deleted',
+      projectId: 'removed-and-fb-project-deleted',
+      storageBucket: 'removed-and-fb-project-deleted',
+      messagingSenderId: 'removed-and-fb-project-deleted'
     })
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
