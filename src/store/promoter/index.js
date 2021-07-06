@@ -26,7 +26,7 @@ export default {
   actions: {
     loadPromoters ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('users').where('accountType', '==', 'promoter')
+      db.collection('users').where('accountType', '==', 'promoter').orderBy('name')
         .onSnapshot((querySnapshot) => {
           const promoters = []
           querySnapshot.forEach((doc) => {
@@ -50,7 +50,7 @@ export default {
     },
     loadPromotersFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('promoters').where('eventId', '==', payload.id)
+      db.collection('promoters').where('eventId', '==', payload.id).orderBy('status')
         .onSnapshot((querySnapshot) => {
           const promoters = []
           querySnapshot.forEach((doc) => {
@@ -74,17 +74,17 @@ export default {
         })
     },
     updatePromoterStatusFromEvent ({commit}, payload) {
-      commit('setLoading', true)
+      commit('setUpdating', true)
 
       db.collection('promoters').doc(payload.promoterId + '_' + payload.eventId)
         .update({status: payload.status, updateDate: moment().toISOString()})
         .then(() => {
-          commit('setLoading', false)
+          commit('setUpdating', false)
           commit('setPromoterStatusFromEvent', {id: payload.promoterId, status: payload.status})
           console.log('User accepted to event.')
         })
         .catch(error => {
-          commit('setLoading', false)
+          commit('setUpdating', false)
           console.error('Error accepting user to event: ', error)
         })
     }

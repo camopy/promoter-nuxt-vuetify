@@ -94,12 +94,12 @@ export default {
         })
         .then(key => {
           if (!payload.image) {
-            commit('createTask', {
-              ...task,
-              eventId: payload.eventId,
-              eventName: payload.eventName,
-              id: key
-            })
+            // commit('createTask', {
+            //   ...task,
+            //   eventId: payload.eventId,
+            //   eventName: payload.eventName,
+            //   id: key
+            // })
             return Promise.reject(new Error('No image'))
           } else {
             const filename = payload.image.name
@@ -120,14 +120,14 @@ export default {
           .then(function () {
             console.log('Task successfully updated with imageUrl!')
             commit('setCreating', false)
-            commit('createTask', {
-              ...task,
-              id: key,
-              eventId: payload.eventId,
-              eventName: payload.eventName,
-              imageUrl: url,
-              imagePath: payload.imagePath
-            })
+            // commit('createTask', {
+            //   ...task,
+            //   id: key,
+            //   eventId: payload.eventId,
+            //   eventName: payload.eventName,
+            //   imageUrl: url,
+            //   imagePath: payload.imagePath
+            // })
           })
           .catch(function (error) {
             commit('setCreating', false)
@@ -208,24 +208,24 @@ export default {
         })
     },
     deleteTask ({commit, getters}, payload) {
-      const task = {
-        name: payload.name,
-        date: payload.date,
-        finalDate: payload.finalDate,
-        description: payload.description,
-        dateUpdated: moment().toISOString(),
-        imageUrl: payload.imageUrl,
-        imagePath: payload.imagePath
-      }
+      // const task = {
+      //   name: payload.name,
+      //   date: payload.date,
+      //   finalDate: payload.finalDate,
+      //   description: payload.description,
+      //   dateUpdated: moment().toISOString(),
+      //   imageUrl: payload.imageUrl,
+      //   imagePath: payload.imagePath
+      // }
       commit('setDeleting', true)
       return db.collection('events/' + payload.eventId + '/tasks').doc(payload.id).delete()
         .then(function (docRef) {
           if (!payload.imagePath) {
             commit('setDeleting', false)
-            commit('deleteTask', {
-              ...task,
-              id: payload.id
-            })
+            // commit('deleteTask', {
+            //   ...task,
+            //   id: payload.id
+            // })
             console.log('Task successfully deleted!')
           } else {
             return firebase.storage().ref(payload.imagePath).delete()
@@ -233,10 +233,10 @@ export default {
               console.log('Task successfully deleted!')
               console.log('Task image successfully deleted!')
               commit('setDeleting', false)
-              commit('deleteTask', {
-                ...task,
-                id: payload.id
-              })
+              // commit('deleteTask', {
+              //   ...task,
+              //   id: payload.id
+              // })
             })
             .catch(function (error) {
               commit('setDeleting', false)
@@ -254,7 +254,7 @@ export default {
     },
     loadTasksFromEvent ({commit}, payload) {
       commit('setLoading', true)
-      return db.collection('events').doc(payload.id).collection('tasks')
+      return db.collection('events').doc(payload.id).collection('tasks').orderBy('dateCreated')
         .onSnapshot((querySnapshot) => {
           const tasks = []
           querySnapshot.forEach((doc) => {
@@ -269,6 +269,7 @@ export default {
               imagePath: doc.data().imagePath,
               eventName: payload.name,
               eventId: payload.id,
+              crewId: payload.creatorId,
               taskReportsTotal: doc.data().taskReportsTotal,
               taskReportsDone: doc.data().taskReportsDone,
               taskReportsNotdone: doc.data().taskReportsNotdone,

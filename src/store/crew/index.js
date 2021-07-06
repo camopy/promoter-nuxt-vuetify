@@ -12,7 +12,7 @@ export default {
   actions: {
     loadCrew ({commit}, payload) {
       commit('setLoading', true)
-      db.collection('users').where('accountType', '==', 'crew')
+      db.collection('users').where('accountType', '==', 'crew').orderBy('name')
         .onSnapshot((querySnapshot) => {
           const crew = []
           querySnapshot.forEach((doc) => {

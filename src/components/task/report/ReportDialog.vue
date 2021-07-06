@@ -76,6 +76,7 @@ export default {
       this.$store.dispatch('updateTaskReport', this.report)
         .then(() => {
           this.reportDialog = false
+          this.$router.go(-1)
         })
     }
   }
